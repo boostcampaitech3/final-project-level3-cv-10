@@ -13,8 +13,10 @@ class LaughterDetector:
         self.sample_rate = 8000
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
+        
     def mp4_to_wav(self):
         wav_converter.convert(self.video_path,self.wav_path)
+        
         
     def get_output(self):
         audio_path = self.wav_path + '.wav'
@@ -56,6 +58,7 @@ class LaughterDetector:
         laughter_output = laugh_segmenter.get_laughter_instances(probs, threshold=self.model_cfg['threshold'], min_length=float(self.model_cfg['min_length']), fps=fps_wav)
         
         return laughter_output, file_length
+    
 
     def make_laugh_timeline(self,input_timeline,whole_length):
         audio_path = self.wav_path + '.wav'
@@ -90,6 +93,7 @@ class LaughterDetector:
         if output_timeline[-1][1]>whole_length:
             output_timeline[-1]=(output_timeline[-1][0],whole_length-1,output_timeline[-1][2],output_timeline[-1][3]) # 마지막값이 동영상 전체 길이 벗어나는경우
         return output_timeline
+    
     
     def calculate_interest(self,input_timeline):
         output_timeline = []

@@ -1,11 +1,11 @@
 import sys
 sys.path.append('./utils')
 sys.path.append('./laughter_detector')
-import configs
+import configs_laugh
 from laughter_detector import LaughterDetector
 
 
-cfg = configs.CONFIG
+cfg = configs_laugh.CONFIG
 
 detector = LaughterDetector(video_path=cfg['file_path']['mp4_path'],
     wav_path=cfg['file_path']['wav_path'],
