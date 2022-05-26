@@ -8,7 +8,6 @@ import { PeoplePanel } from '../components';
 const StyledArea = styled.div`
     margin: 0 auto;
     margin-top: 40px;
-    // background-color: lightgray;
     width: 75%;
     align-items: flex-start;
     display: flex;

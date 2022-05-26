@@ -10,9 +10,6 @@ const StyledPanel = styled.div`
     border-radius: 12px;
     border-style: dashed;
     border: 2px solid #0279C1;
-    // flex-direction: column;
-    // display: flex;
-    // flex-wrap: wrap;
     margin-left: 20px;
 `;
 
@@ -31,12 +28,10 @@ const StyledButton = styled.div`
 const StyledPerson = styled.div`
     padding: 10px;
     margin: 5px;
-    // background-color: lightgray;
     display: flex;
     align-items: center;
     font-size: 18px;
     font-weight: bold;
-    // justify-content: space-between;
 `;
 
 
