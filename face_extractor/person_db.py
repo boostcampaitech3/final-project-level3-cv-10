@@ -40,12 +40,12 @@ class Face():
 
 
 class Person():
-    _last_id = 0
+    # _last_id = 0
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, person_id=None):
         if name is None:
-            Person._last_id += 1
-            self.name = "person_%02d" % Person._last_id
+            # Person._last_id += 1
+            self.name = "person_%02d" % person_id
         else:
             self.name = name
             if name.startswith("person_") and name[7:].isdigit():
@@ -206,10 +206,4 @@ class PersonDB():
             print(s)
 
 
-if __name__ == '__main__':
-    dir_name = "result"
-    pdb = PersonDB()
-    pdb.load_db(dir_name)
-    pdb.print_persons()
-    pdb.save_montages(dir_name)
-    pdb.save_encodings(dir_name)
+

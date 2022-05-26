@@ -21,6 +21,7 @@ class FaceExtractor:
         :use_clipped_video : whether the given video_path refers to the original(long) video or clipped(short) video.
                             if original, then automatically clip it to shorter video for faster procesing
         '''
+        self.person_id = 0
         self.save_dir = save_dir
         self.data_dir = data_dir
 
@@ -188,7 +189,8 @@ class FaceExtractor:
         min_value = distances[index]
         if min_value < self.sim_thresh:
             # two faces are similar - create new person with two faces
-            person = Person()
+            person = Person(person_id=self.person_id) #
+            self.person_id += 1 #
             newly_known_face = unknown_faces.pop(index)
             person.add_face(newly_known_face)
             person.add_face(face)
