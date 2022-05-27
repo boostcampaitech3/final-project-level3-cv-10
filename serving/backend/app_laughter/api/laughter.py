@@ -38,6 +38,9 @@ async def get_laughter_timeline(file: UploadFile = File(...)):
     laughter_timeline = LaughterDetection(server_path, wav_path, ml_path)
     new_video_timeline.laughter_timeline = laughter_timeline
 
+    # remove folder (laughter detection 서버에서는 일회성이므로)
+    shutil.rmtree(os.path.join(FILE_DIR, str(new_video_timeline.id)))
+
     # TODO: timeline이 없을 때의 처리 추가 필요!
 
     return new_video_timeline
