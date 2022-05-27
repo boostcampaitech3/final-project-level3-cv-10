@@ -51,10 +51,10 @@ async def show_people(id: UUID):
         img = Image.open(img_path)
         people_img[person] = from_img_to_bytes(img)
 
-    return {"id": id, "people_img": people_img, "message": "(show-people) Welcome to SNOWMAN :')"}
+    return {"id": id, "people_img": people_img}
 
 
-@router.post("/timeline-face", description="face recognition을 통해 인물의 timeline을 추출한다.")
+@router.post("/timeline-face", description="face recognition을 통해 인물의 timeline을 추출합니다.")
 async def get_timeline_face():
     # FE에서 선택한 사람을 받아 face recognition 진행 예정
     return
