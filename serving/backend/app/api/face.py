@@ -9,6 +9,8 @@ from PIL import Image
 import base64
 import io
 
+from ml.face_timeline import make_face_timeline
+
 
 
 router = APIRouter(tags=["timeline"])
@@ -55,9 +57,13 @@ async def show_people(id: UUID):
 
 
 @router.post("/timeline-face", description="face recognition을 통해 인물의 timeline을 추출한다.")
-async def get_timeline_face():
+async def get_timeline_face(face: UploadFile = File(...), id: UUID = None):
+    video = os.path.join(FILE_DIR, str(id), 'original.mp4')
+    image = face.file
+
+    timeline = make_face_timeline(video, image)
     # FE에서 선택한 사람을 받아 face recognition 진행 예정
-    return
+    return timeline
 
 
 # TODO: /show-people (face clustering 결과 보여주기)
