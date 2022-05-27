@@ -12,7 +12,6 @@ def LaughterDetection(video_path: str = "", wav_path: str = "", ml_path: str = "
 
     cfg['laughter_detection']['resnet_with_augmentation']['model_path'] \
         = os.path.join(ml_path, cfg['laughter_detection']['resnet_with_augmentation']['model_path'])
-    print(cfg['laughter_detection']['resnet_with_augmentation']['model_path'])
 
     detector = LaughterDetector(video_path=video_path,
         wav_path=wav_path,
