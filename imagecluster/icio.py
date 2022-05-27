@@ -5,7 +5,7 @@ import os
 import pickle
 import re
 
-from tensorflow.keras.preprocessing import image
+import numpy as np
 import PIL.Image
 
 # from . import exceptions
@@ -150,7 +150,7 @@ def _image_worker(filename, size):
     try:
         print(filename)
         img = PIL.Image.open(filename).convert('RGB').resize(size, resample=3)
-        arr = image.img_to_array(img, dtype=int)
+        arr = np.asarray(img).astype(int)
         return filename, arr
     except OSError as ex:
         print(f"skipping {filename}: {ex}")

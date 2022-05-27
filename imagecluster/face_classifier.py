@@ -19,8 +19,6 @@ import matplotlib.pyplot as plt
 
 import calc
 
-from tensorflow.keras.preprocessing import image as tf_image
-
 
 class FaceClassifier():
     def __init__(self, threshold, ratio, save_dir):
@@ -67,8 +65,8 @@ class FaceClassifier():
     def preprocess(self, image, size):
         try:
             img = Image.fromarray(image).convert('RGB').resize(size, resample=3)
-            arr = tf_image.img_to_array(img, dtype=int)
-            return arr
+            # arr = np.asarray(img).astype(int)
+            return img # arr
         except OSError as ex:
             print(f"skipping file...: {ex}")
             return None
@@ -81,7 +79,7 @@ class FaceClassifier():
             small_frame = cv2.resize(frame, (0, 0), fx=self.ratio, fy=self.ratio)
             rgb = small_frame[:, :, ::-1]
 
-        boxes = face_recognition.face_locations(rgb)
+        boxes = face_recognition.face_locations(rgb, model='cnn') # model='cnn': use gpu in dlib
 
         if self.ratio == 1.0:
             return boxes

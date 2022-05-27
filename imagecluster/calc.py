@@ -6,11 +6,18 @@ from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from sklearn.decomposition import PCA
 
-# from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
-from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
-from tensorflow.keras.models import Model
-import tensorflow.keras as keras
+# from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
+# from tensorflow.keras.models import Model
+# import tensorflow.keras as keras
+import torchvision.transforms as transforms
+import torchvision.models as models
+import torch
 
+data_transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
 
 pj = os.path.join
 
@@ -46,15 +53,31 @@ def get_model():
             predictions (Dense)          (None, 1000)              4097000
     """
     # base_model = VGG16(weights='imagenet', include_top=True)
-    base_model = ResNet50(weights='imagenet', include_top=True)
-    # model = Model(inputs=base_model.input,
-    #               outputs=base_model.get_layer(layer).output)
+    # base_model = ResNet50(pretrained=True)
+    '''tensorflow - resnet50
+    base_model = ResNet50(pretrained=True)
     model = keras.Sequential(
     [
         Model(inputs=base_model.input, outputs=base_model.get_layer('conv3_block4_out').output), # (None, 28, 28, 512)
         keras.layers.GlobalAveragePooling2D() # (None, 512)
-    ]
-)
+    ])
+    '''
+
+    '''pytorch - resnet50
+    base_model = models.resnet50(pretrained=True)
+    model = torch.nn.Sequential(
+        *(list(base_model.children())[:6]), # conv3_x, (28, 28, 512)
+        torch.nn.AdaptiveAvgPool2d((1,1)),
+        torch.nn.Flatten()
+    )
+    '''
+    '''pytorch - resnet18'''
+    base_model = models.resnet18(pretrained=True)
+    model = torch.nn.Sequential(
+        *(list(base_model.children())[:-1]), # except fc layer
+        torch.nn.Flatten()
+    )
+
     return model
 
 
@@ -86,15 +109,13 @@ def fingerprint(image, model):
     # VGG16).
     #
     # We assme channels_last here. Fix if needed.
-    if image.shape[2] == 1:
-        image = image.repeat(3, axis=2)
+    # if image.shape[2] == 1:
+    #     image = image.repeat(3, axis=2)
 
-    # (1, 224, 224, 3)
-    arr4d = np.expand_dims(image, axis=0)
+    arr3d = data_transform(image)
+    arr4d_tt = torch.FloatTensor(arr3d).unsqueeze(0)
 
-    # (1, 224, 224, 3)
-    arr4d_pp = preprocess_input(arr4d)
-    ret = model.predict(arr4d_pp)[0,:]
+    ret = model.forward(arr4d_tt)[0, :].detach().numpy()
 
     return ret
 
