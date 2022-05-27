@@ -9,7 +9,6 @@ from PIL import Image
 import base64
 import io
 
-from ml.extract_face import execute_face_extractor
 
 
 router = APIRouter(tags=["timeline"])

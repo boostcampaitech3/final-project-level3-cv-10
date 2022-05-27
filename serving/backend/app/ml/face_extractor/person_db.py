@@ -40,18 +40,18 @@ class Face():
 
 
 class Person():
-    _last_id = 0
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, person_id=None):
         if name is None:
-            Person._last_id += 1
-            self.name = "person_%02d" % Person._last_id
+            self.name = "person_%02d" % person_id
         else:
             self.name = name
             if name.startswith("person_") and name[7:].isdigit():
                 id = int(name[7:])
-                if id > Person._last_id:
-                    Person._last_id = id
+                # if id > Person._last_id:
+                #     Person._last_id = id
+                if id > person_id:
+                    person_id = id
         self.encoding = None
         self.faces = []
 
@@ -110,6 +110,7 @@ class Person():
                 person.faces.append(face)
         print(person.name, "has", len(person.faces), "faces")
         person.calculate_average_encoding()
+        # person._last_id = 0
         return person
 
 class PersonDB():
@@ -118,35 +119,6 @@ class PersonDB():
         self.unknown_dir = "unknowns"
         self.encoding_file = "face_encodings"
         self.unknown = Person(self.unknown_dir)
-
-    def load_db(self, dir_name):
-        if not os.path.isdir(dir_name):
-            return
-        print("Start loading persons in the directory '%s'" % dir_name)
-        start_time = time.time()
-
-        # read face_encodings
-        pathname = os.path.join(dir_name, self.encoding_file)
-        try:
-            with open(pathname, "rb") as f:
-                face_encodings = pickle.load(f)
-                print(len(face_encodings), "face_encodings in", pathname)
-        except:
-            face_encodings = {}
-
-        # read persons
-        for entry in os.scandir(dir_name):
-            if entry.is_dir(follow_symlinks=False):
-                pathname = os.path.join(dir_name, entry.name)
-                person = Person.load(pathname, face_encodings)
-                if len(person.faces) == 0:
-                    continue
-                if entry.name == self.unknown_dir:
-                    self.unknown = person
-                else:
-                    self.persons.append(person)
-        elapsed_time = time.time() - start_time
-        print("Loading persons finished in %.3f sec." % elapsed_time)
 
     def save_encodings(self, dir_name):
         face_encodings = {}
@@ -205,11 +177,3 @@ class PersonDB():
             s += ", %d faces" % len(person.faces)
             print(s)
 
-
-if __name__ == '__main__':
-    dir_name = "result"
-    pdb = PersonDB()
-    pdb.load_db(dir_name)
-    pdb.print_persons()
-    pdb.save_montages(dir_name)
-    pdb.save_encodings(dir_name)
