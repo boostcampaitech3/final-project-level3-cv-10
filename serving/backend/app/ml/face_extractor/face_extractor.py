@@ -23,6 +23,7 @@ class FaceExtractor:
         '''
         self.save_dir = save_dir
         self.data_dir = data_dir
+        self.person_id = 0
 
         self.video_path = video_path
         if not use_clipped_video:
@@ -188,7 +189,8 @@ class FaceExtractor:
         min_value = distances[index]
         if min_value < self.sim_thresh:
             # two faces are similar - create new person with two faces
-            person = Person()
+            person = Person(person_id=self.person_id) #
+            self.person_id += 1 #
             newly_known_face = unknown_faces.pop(index)
             person.add_face(newly_known_face)
             person.add_face(face)
