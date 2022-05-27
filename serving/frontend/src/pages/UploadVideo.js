@@ -51,7 +51,7 @@ function UploadVideo() {
     navigate("/select-person", {
       state: res
     });
-  }
+  };
 
   const uploadModule = async (e) => {
     e.preventDefault();
@@ -65,24 +65,60 @@ function UploadVideo() {
       setLoading(true);
     }
 
-    const URL = "http://118.67.130.53:30001/upload-video";
+    const getFaceClustering = () => {
+      return axios({
+        method: "post",
+        url: "http://118.67.130.53:30001/upload-video",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        }
+      });
+    };
 
-    await axios({
-      method: "post",
-      url: URL,
-      data: formData,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      }
-    }).then((response) => {
-      setLoading(false);
-      setNext(true);
-      setRes(response.data)
-      console.log(response);
-    }).catch((error) => {
-      console.log('Failure :(');
-    });
-  }
+    const getLaughterDetection = () => {
+      return axios({
+        method: "post",
+        url: "http://118.67.130.53:30003/timeline-laughter",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        }
+      });
+    };
+
+    await axios.all([getFaceClustering(), getLaughterDetection()])
+      .then(axios.spread(function (face_clustering, laughter_detection) {
+          setLoading(false);
+          setNext(true);
+          var tmp = { ...face_clustering.data};
+          tmp["laughter_timeline"] = laughter_detection.data.laughter_timeline;
+          setRes(tmp);
+          console.log(tmp);
+      })).catch((error) => {
+        console.log("Failure :(");
+      });
+
+
+    // === executing only face clustering ===
+    // const URL = "http://118.67.130.53:30001/upload-video";
+
+    // await axios({
+    //   method: "post",
+    //   url: URL,
+    //   data: formData,
+    //   headers: {
+    //     "Content-Type": "multipart/form-data",
+    //   }
+    // }).then((response) => {
+    //   setLoading(false);
+    //   setNext(true);
+    //   setRes(response.data)
+    //   console.log(response);
+    // }).catch((error) => {
+    //   console.log('Failure :(');
+    // });
+  };
 
   return (
     <div style={{padding: "20px"}}>
@@ -92,7 +128,7 @@ function UploadVideo() {
         <p style={{color: '#777777'}}>인물을 선택하면 </p>
         <p style={{color: '#aaaaaa'}}>#눈#사람이 자동으로 쇼츠를 추출합니다.</p>
       </StyledIntro>
-      <Spin spinning={loading} size="large" tip="Extracting faces...">
+      <Spin spinning={loading} size="large" tip="Extracting faces and laughter timeline...">
         <StyledUpload>
           <form onSubmit={uploadModule}>
             <p style={{fontSize: '18px', color: '#707070', fontWeight: 'bold'}}>원본 영상을 업로드해주세요.</p>
