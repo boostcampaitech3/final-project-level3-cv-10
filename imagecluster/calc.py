@@ -6,11 +6,15 @@ from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from sklearn.decomposition import PCA
 
-# from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
-from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
-from tensorflow.keras.models import Model
-import tensorflow.keras as keras
+import torchvision.transforms as transforms
+import torchvision.models as models
+import torch
 
+data_transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
 
 pj = os.path.join
 
@@ -46,79 +50,44 @@ def get_model():
             predictions (Dense)          (None, 1000)              4097000
     """
     # base_model = VGG16(weights='imagenet', include_top=True)
-    base_model = ResNet50(weights='imagenet', include_top=True)
-    # model = Model(inputs=base_model.input,
-    #               outputs=base_model.get_layer(layer).output)
+    # base_model = ResNet50(pretrained=True)
+    '''tensorflow - resnet50
+    base_model = ResNet50(pretrained=True)
     model = keras.Sequential(
     [
         Model(inputs=base_model.input, outputs=base_model.get_layer('conv3_block4_out').output), # (None, 28, 28, 512)
         keras.layers.GlobalAveragePooling2D() # (None, 512)
-    ]
-)
+    ])
+    '''
+
+    '''pytorch - resnet50
+    base_model = models.resnet50(pretrained=True)
+    model = torch.nn.Sequential(
+        *(list(base_model.children())[:6]), # conv3_x, (28, 28, 512)
+        torch.nn.AdaptiveAvgPool2d((1,1)),
+        torch.nn.Flatten()
+    )
+    '''
+    '''pytorch - resnet18'''
+    base_model = models.resnet18(pretrained=True)
+    model = torch.nn.Sequential(
+        *(list(base_model.children())[:-1]), # except fc layer
+        torch.nn.Flatten()
+    )
+
     return model
 
 
-def fingerprint(image, model):
-    """Run image array (3d array) run through `model` (``keras.models.Model``).
+def fingerprint(images, model, device):
 
-    Parameters
-    ----------
-    image : 3d array
-        (3,x,y) or (x,y,3), depending on
-        ``keras.preprocessing.image.img_to_array`` and ``image_data_format``
-        (``channels_{first,last}``) in ``~/.keras/keras.json``, see
-        :func:`~imagecluster.io.read_images`
-    model : ``keras.models.Model`` instance
+    arr4d = [torch.FloatTensor(data_transform(image)) for image in images]
+    arr4d = torch.stack(arr4d)
+    
+    model = model.to(device)
+    arr4d = arr4d.to(device)
 
-    Returns
-    -------
-    fingerprint : 1d array
-    """
-    # (224, 224, 1) -> (224, 224, 3)
-    #
-    # Simple hack to convert a grayscale image to fake RGB by replication of
-    # the image data to all 3 channels.
-    #
-    # Deep learning models may have learned color-specific filters, but the
-    # assumption is that structural image features (edges etc) contibute more to
-    # the image representation than color, such that this hack makes it possible
-    # to process gray-scale images with nets trained on color images (like
-    # VGG16).
-    #
-    # We assme channels_last here. Fix if needed.
-    if image.shape[2] == 1:
-        image = image.repeat(3, axis=2)
-
-    # (1, 224, 224, 3)
-    arr4d = np.expand_dims(image, axis=0)
-
-    # (1, 224, 224, 3)
-    arr4d_pp = preprocess_input(arr4d)
-    ret = model.predict(arr4d_pp)[0,:]
-
+    ret = model.forward(arr4d).cpu().detach().numpy()
     return ret
-
-
-# Cannot use multiprocessing (only tensorflow backend tested, rumor has it that
-# the TF computation graph is not built multiple times, i.e. pickling (what
-# multiprocessing does with _worker) doen't play nice with Keras models which
-# use Tf backend). The call to the parallel version of fingerprints() starts
-# but seems to hang forever. However, Keras with Tensorflow backend runs
-# multi-threaded (model.predict()), so we can sort of live with that. Even
-# though Tensorflow has not the best scaling on the CPU, on low core counts
-# (2-4), it won't matter that much. Also, TF was built to run on GPUs, not
-# scale out multi-core CPUs.
-#
-##def _worker(image, model):
-##    print(fn)
-##    return fn, fingerprint(image, model)
-##
-##
-##def fingerprints(images, model):
-##    _f = functools.partial(_worker, model=model)
-##    with mp.Pool(int(mp.cpu_count()/2)) as pool:
-##        ret = pool.map(_f, images.items())
-##    return dict(ret)
 
 def fingerprints(images, model):
     """Calculate fingerprints for all image arrays in `images`.
