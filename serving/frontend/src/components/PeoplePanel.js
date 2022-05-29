@@ -81,19 +81,10 @@ function PeoplePanel(props) {
         );
     };
 
-    
-
     const personSelect = async(e) => {
         e.preventDefault();
 
-        // console.log(e.target)
-        // const formData = new FormData();
         const URL = "http://101.101.218.23:30001/timeline-face";
-
-        // formData.append('person', value);
-        // formData.append('id', props.id);
-
-        // console.log(formData)
 
         await axios.post(URL, {"face":value, "id":props.id}
         ).then((response)=> {
