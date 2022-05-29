@@ -12,7 +12,7 @@ app.include_router(face.router)
 origins = [
     "http://34.64.107.58:30002",
     "34.64.107.58:30002",
-    "http://34.64.208.21:30002"
+    "http://34.64.208.21:30002",
 ]
 
 app.add_middleware(
