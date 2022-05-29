@@ -65,7 +65,7 @@ function UploadVideo() {
       setLoading(true);
     }
 
-    const URL = "http://118.67.130.53:30001/upload-video";
+    const URL = "http://101.101.218.23:30001/upload-video";
 
     await axios({
       method: "post",

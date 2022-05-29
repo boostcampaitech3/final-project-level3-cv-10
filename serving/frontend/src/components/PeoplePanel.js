@@ -1,4 +1,5 @@
-import { Radio } from 'antd';
+import { Radio, Spin } from 'antd';
+import axios from 'axios';
 import { useState } from 'react';
 import styled from "styled-components";
 
@@ -37,6 +38,8 @@ const StyledPerson = styled.div`
 
 function PeoplePanel(props) {
     const [value, setValue] = useState('');
+    const [timeline, setTimeline] = useState();
+    const [id, setId] = useState();
 
     const onChange = (e) => {
         console.log('Selected Person:', e.target.value);
@@ -44,6 +47,7 @@ function PeoplePanel(props) {
       };
 
     const rendering = (people) => {
+        console.log(props)
         const people_imgs = [];
         for (var prop in people) {
             people_imgs.push(
@@ -77,6 +81,31 @@ function PeoplePanel(props) {
         );
     };
 
+    
+
+    const personSelect = async(e) => {
+        e.preventDefault();
+
+        // console.log(e.target)
+        // const formData = new FormData();
+        const URL = "http://101.101.218.23:30001/timeline-face";
+
+        // formData.append('person', value);
+        // formData.append('id', props.id);
+
+        // console.log(formData)
+
+        await axios.post(URL, {"face":value, "id":props.id}
+        ).then((response)=> {
+            console.log(response)
+            setId(response.data.id)
+            setTimeline(response.data.timeline)
+        }).catch((error) => {
+            console.log("Failure :(")
+        })
+
+    };
+
     return (
         <StyledPanel>
             <div style={{display: "flex", alignItems: "stretch"}}>
@@ -85,7 +114,11 @@ function PeoplePanel(props) {
                     {radioButton(props.people)}
                 </div>
             </div>
-            <StyledButton>인물 선택 완료!</StyledButton>
+                <StyledButton onClick={personSelect}>
+                        인물 선택 완료!
+                </StyledButton>
+
+            
         </StyledPanel>
     );
 }
