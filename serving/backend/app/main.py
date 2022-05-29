@@ -2,13 +2,12 @@ import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from api import video, face, laughter
+from api import video, face
 
 app = FastAPI()
 
 app.include_router(video.router)
 app.include_router(face.router)
-app.include_router(laughter.router)
 
 origins = [
     "http://34.64.107.58:30002",
@@ -30,5 +29,4 @@ async def read_root() -> dict:
 
 
 if __name__ == "__main__":
-    # uvicorn.run("api.api:app", host="0.0.0.0", port=30001, reload=True)
     uvicorn.run("main:app", host="0.0.0.0", port=30001, reload=True)
