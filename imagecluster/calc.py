@@ -6,12 +6,14 @@ from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from sklearn.decomposition import PCA
 
-# from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
+from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
 # from tensorflow.keras.models import Model
 # import tensorflow.keras as keras
 import torchvision.transforms as transforms
 import torchvision.models as models
 import torch
+
+from PIL import Image
 
 data_transform = transforms.Compose([
     transforms.Resize((224,224)),
@@ -71,12 +73,15 @@ def get_model():
         torch.nn.Flatten()
     )
     '''
+    
     '''pytorch - resnet18'''
     base_model = models.resnet18(pretrained=True)
     model = torch.nn.Sequential(
-        *(list(base_model.children())[:-1]), # except fc layer
+        *(list(base_model.children())[:6]), # (28, 28, 128)
+        torch.nn.AdaptiveAvgPool2d((1,1)),
         torch.nn.Flatten()
     )
+    
 
     return model
 
@@ -111,11 +116,48 @@ def fingerprint(image, model):
     # We assme channels_last here. Fix if needed.
     # if image.shape[2] == 1:
     #     image = image.repeat(3, axis=2)
+    '''
+    arr3d = np.asarray(image).astype(int)
+    arr4d = np.expand_dims(arr3d, axis=0)
+    # print(arr4d.shape)
+    arr4d_tt = torch.permute(torch.from_numpy(preprocess_input(arr4d).copy()), (0, 3, 1, 2))
+    '''
+    
+    # print(image.shape)
+    # print(image)
+    # image1 = image.astype(np.uint8)
+    # print('image1', image1.shape, image1)
+    # image2 = Image.fromarray(image1)
+    # print('image2', image2.size, image2)
+    # image3 = image2.convert('RGB')
+    # print('image3', image3.size, image3)
+    # image4 = image3.resize((224,224), resample=3)
+    # print('image4', image4.size, image4)
+    # arr4d = data_transform(image4)
+    # print('image5', arr4d.shape, arr4d)
+    # arr4d_tt = arr4d.unsqueeze(0)
+    # print('arr4d_tt', arr4d_tt.shape, arr4d_tt)
 
-    arr3d = data_transform(image)
-    arr4d_tt = torch.FloatTensor(arr3d).unsqueeze(0)
+    pil_image = Image.fromarray((image).astype(np.uint8))# .convert('RGB')# .resize((224,224), resample=3)
+    
+    
+    arr3d = data_transform(pil_image)
+    # print(np.asarray(image))
+    # arr3d = np.asarray(image)
+    # arr4d = np.expand_dims(arr3d,axis=0)
+    # print('arr4d',arr4d)
+    # arr4d_tt = torch.FloatTensor(arr4d)
+    
+    # arr4d_tt = torch.FloatTensor(arr3d).unsqueeze(0)
+    arr4d_tt = arr3d.unsqueeze(0)
+    # arr4d_tt = torch.permute(arr4d_tt,(0,2,3,1))
+    # print('arr4d_tt',arr4d_tt.shape,arr4d_tt)
 
     ret = model.forward(arr4d_tt)[0, :].detach().numpy()
+
+    # print('ret', ret.shape, ret)
+
+    # exit()
 
     return ret
 
