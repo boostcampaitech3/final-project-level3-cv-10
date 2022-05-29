@@ -86,78 +86,20 @@ def get_model():
     return model
 
 
-def fingerprint(image, model):
-    """Run image array (3d array) run through `model` (``keras.models.Model``).
+def fingerprint(pil_images, model, device):
 
-    Parameters
-    ----------
-    image : 3d array
-        (3,x,y) or (x,y,3), depending on
-        ``keras.preprocessing.image.img_to_array`` and ``image_data_format``
-        (``channels_{first,last}``) in ``~/.keras/keras.json``, see
-        :func:`~imagecluster.io.read_images`
-    model : ``keras.models.Model`` instance
-
-    Returns
-    -------
-    fingerprint : 1d array
-    """
-    # (224, 224, 1) -> (224, 224, 3)
-    #
-    # Simple hack to convert a grayscale image to fake RGB by replication of
-    # the image data to all 3 channels.
-    #
-    # Deep learning models may have learned color-specific filters, but the
-    # assumption is that structural image features (edges etc) contibute more to
-    # the image representation than color, such that this hack makes it possible
-    # to process gray-scale images with nets trained on color images (like
-    # VGG16).
-    #
-    # We assme channels_last here. Fix if needed.
-    # if image.shape[2] == 1:
-    #     image = image.repeat(3, axis=2)
-    '''
-    arr3d = np.asarray(image).astype(int)
-    arr4d = np.expand_dims(arr3d, axis=0)
-    # print(arr4d.shape)
-    arr4d_tt = torch.permute(torch.from_numpy(preprocess_input(arr4d).copy()), (0, 3, 1, 2))
-    '''
+    # pil_images = [Image.fromarray((image).astype(np.uint8)) for image in images]
     
-    # print(image.shape)
-    # print(image)
-    # image1 = image.astype(np.uint8)
-    # print('image1', image1.shape, image1)
-    # image2 = Image.fromarray(image1)
-    # print('image2', image2.size, image2)
-    # image3 = image2.convert('RGB')
-    # print('image3', image3.size, image3)
-    # image4 = image3.resize((224,224), resample=3)
-    # print('image4', image4.size, image4)
-    # arr4d = data_transform(image4)
-    # print('image5', arr4d.shape, arr4d)
-    # arr4d_tt = arr4d.unsqueeze(0)
-    # print('arr4d_tt', arr4d_tt.shape, arr4d_tt)
-
-    pil_image = Image.fromarray((image).astype(np.uint8))# .convert('RGB')# .resize((224,224), resample=3)
+    arr4ds_tt = [torch.FloatTensor(data_transform(pil_image)) for pil_image in pil_images]
     
-    
-    arr3d = data_transform(pil_image)
-    # print(np.asarray(image))
-    # arr3d = np.asarray(image)
-    # arr4d = np.expand_dims(arr3d,axis=0)
-    # print('arr4d',arr4d)
-    # arr4d_tt = torch.FloatTensor(arr4d)
-    
-    # arr4d_tt = torch.FloatTensor(arr3d).unsqueeze(0)
-    arr4d_tt = arr3d.unsqueeze(0)
-    # arr4d_tt = torch.permute(arr4d_tt,(0,2,3,1))
-    # print('arr4d_tt',arr4d_tt.shape,arr4d_tt)
+    arr4d_tt = torch.stack(arr4ds_tt)
 
-    ret = model.forward(arr4d_tt)[0, :].detach().numpy()
+    model = model.to(device)
+    arr4d_tt = arr4d_tt.to(device)
 
-    # print('ret', ret.shape, ret)
+    ret = model.forward(arr4d_tt).cpu().detach().numpy()
 
-    # exit()
+    # print(ret.shape)
 
     return ret
 
