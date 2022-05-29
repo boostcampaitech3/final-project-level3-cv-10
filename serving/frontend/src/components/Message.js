@@ -6,7 +6,7 @@ export default function Message() {
     const [result, setResult] = useState(null);
     const message = async () => {
         try {
-            let res = await axios.get('http://118.67.130.53:30001/');
+            let res = await axios.get('http://101.101.218.23:30001/');
             let result = res.data["message"];
             setResult(result);
         } catch(e) {
