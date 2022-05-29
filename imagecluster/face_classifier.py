@@ -65,8 +65,8 @@ class FaceClassifier():
     def preprocess(self, image, size):
         try:
             img = Image.fromarray(image).convert('RGB').resize(size, resample=3)
-            # arr = np.asarray(img).astype(int)
-            return img # arr
+            arr = np.asarray(img).astype(int)
+            return arr
         except OSError as ex:
             print(f"skipping file...: {ex}")
             return None
@@ -118,7 +118,7 @@ class FaceClassifier():
         :param model: Optional - which model to use. "large" or "small" (default) which only returns 5 points but is faster.
         :return: A list of 128-dimensional face encodings (one for each face in the image)
         '''
-        face_encodings = face_recognition.face_encodings(frame, face_boxes, model='large')
+        face_encodings = face_recognition.face_encodings(frame, face_boxes, model='small')
 
         # model for cloth encoding
         cloth_encoding_model = calc.get_model() # resnet
@@ -136,7 +136,12 @@ class FaceClassifier():
             normalized_face_encoding = face_encodings[i] / np.linalg.norm(face_encodings[i])
             normalized_cloth_encoding = cloth_encoding / np.linalg.norm(cloth_encoding)
             # concat features [face | cloth]
-            encoding = np.concatenate((normalized_face_encoding, normalized_cloth_encoding), axis=0) # 128-d + 512-d
+            face_weight, cloth_weight = 1, 2
+            encoding = np.concatenate((normalized_face_encoding*face_weight, normalized_cloth_encoding*cloth_weight), axis=0) # 128-d + 128-d
+            # encoding = normalized_face_encoding
+            # encoding = normalized_cloth_encoding
+            # encoding = face_encodings[i]
+            # encoding = cloth_encoding
             # filename
             filename = str_ms + str(i) + ".png"
             # save image
