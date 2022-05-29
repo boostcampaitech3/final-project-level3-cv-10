@@ -20,16 +20,18 @@ function SelectPerson() {
     console.log(location.state);
 
     const [people, setPeople] = useState({});
+    const [filename, setFilename] = useState({});
 
     useEffect(() => {
 
         const getPeople = async () => {
-            const URL = "http://118.67.130.53:30001/show-people";
+            const URL = "http://101.101.218.23:30001/show-people";
 
             await axios.get(URL, {params: {"id":  location.state.id}}
             ).then((response) => {
                 console.log(response);
                 setPeople(response.data.people_img);
+                setFilename(response.data.people_img_name);
             }).catch((error) => {
                 console.log('Failure :(');
             });
@@ -50,7 +52,7 @@ function SelectPerson() {
                 <video width="60%" controls>
                     <source src={location.state.video}></source>
                 </video>
-                <PeoplePanel people={people} />
+                <PeoplePanel people={people} id={location.state.id} filename = {filename}/>
             </StyledArea>
         </div>
     );

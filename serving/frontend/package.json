@@ -44,7 +44,7 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://118.67.130.53:30001",
+  "proxy": "http://101.101.218.23:30001",
   "devDependencies": {
     "babel-plugin-import": "^1.13.5",
     "react-app-rewired": "^2.2.1"
