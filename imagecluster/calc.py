@@ -95,6 +95,7 @@ def fingerprint(pil_images, model, device):
     arr4d_tt = torch.stack(arr4ds_tt)
 
     model = model.to(device)
+    model.eval()
     arr4d_tt = arr4d_tt.to(device)
 
     ret = model.forward(arr4d_tt).cpu().detach().numpy()

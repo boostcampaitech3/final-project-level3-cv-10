@@ -59,7 +59,9 @@ class FaceClassifier():
             # return
             if (pad_top == 0 and pad_bottom == 0):
                 if (pad_left == 0 and pad_right == 0):
-                    return face_image, cloth_image
+                    padded_faces.append(face_image)
+                    padded_clothes.append(cloth_image)
+                    continue
             padded_face = cv2.copyMakeBorder(face_image, pad_top, pad_bottom,
                                             pad_left, pad_right, cv2.BORDER_CONSTANT)
             padded_cloth = cv2.copyMakeBorder(cloth_image, pad_top, pad_bottom,
@@ -115,12 +117,13 @@ class FaceClassifier():
         # print('batch_face_locations', len(batch_face_locations), batch_face_locations)
 
         # 사람이 2명 ~ 4명 사이일 때만 수행
-        new_frames = []
+        # new_frames = []
         # 2명 ~ 4명 사이인 프레임만 가져오기
-        for i in range(len(frames)):
-            if 2 <= len(batch_face_locations[i]) <= 4:
-                new_frames.append(frames[i])
-        frames = new_frames
+        frames = [frames[i] for i in range(len(frames)) if 2 <= len(batch_face_locations[i]) <= 4]
+        # for i in range(len(frames)):
+        #     if 2 <= len(batch_face_locations[i]) <= 4:
+        #         new_frames.append(frames[i])
+        # frames = list(new_frames)
         # 2명 ~ 4명 사이인 face location만 가져오기
         batch_face_locations = [x for x in batch_face_locations if (2 <= len(x) <= 4)]
 
@@ -157,7 +160,7 @@ class FaceClassifier():
         fingerprints = dict()
 
         for frame_number_in_batch, face_locations in enumerate(batch_face_locations):
-            face_encodings = face_recognition.face_encodings(frames[frame_number_in_batch], face_locations) # list 안에 인물 수만큼 numpy array
+            face_encodings = face_recognition.face_encodings(frames[frame_number_in_batch], face_locations, model='small') # list 안에 인물 수만큼 numpy array
             # crop face image
             upper_body_images, cloth_images = self.get_face_and_cloth_image(frames[frame_number_in_batch], face_locations) # list 형태로 반환
             # cloth preprocessing
