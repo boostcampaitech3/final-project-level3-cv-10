@@ -2,12 +2,13 @@ import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from api import video, face
+from api import video, face, highlight
 
 app = FastAPI()
 
 app.include_router(video.router)
 app.include_router(face.router)
+app.include_router(highlight.router)
 
 origins = [
     "http://34.64.107.58:30002",
