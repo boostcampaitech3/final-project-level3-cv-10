@@ -3,7 +3,7 @@
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Message, NavBar } from './components';
-import { UploadVideo, SelectPerson } from './pages';
+import { UploadVideo, SelectPerson, SelectVideo, SelectVideoTmp } from './pages';
 
 
 function App() {
@@ -16,6 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={<UploadVideo />} />
           <Route path="/select-person" element={<SelectPerson />} />
+          <Route path="/select-video" element={<SelectVideo />} />
         </Routes>
       </BrowserRouter>
     </div>
