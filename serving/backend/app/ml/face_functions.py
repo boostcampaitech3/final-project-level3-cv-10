@@ -3,6 +3,9 @@ from ml.face_extractor.person_db import Person
 
 from ml.face_recognizer.face_recog import FaceRecognizer
 
+from ml.final_shorts.final_timeline import make_final_timeline
+from ml.final_shorts.make_shorts import make_shorts
+
 from ml.utils import load_json
 
 '''
@@ -46,3 +49,21 @@ def FaceRecognition(video_path: str="", target_path: str=""):
     people_timeline = recognizer.make_people_timeline(output_frames)
 
     return people_timeline
+
+
+
+########## Final Timeline ############
+def FinalTimeline(laugh_timeline, people_timeline, id):
+    # shorts = []
+
+    for target_person_timeline in people_timeline:
+        final_timeline, total_length = make_final_timeline(laugh_timeline, target_person_timeline)
+        # print("final_timeline : ")
+        # print(final_timeline)
+        # print(total_length)
+        # shorts.append(final_timeline)
+        make_shorts(final_timeline, total_length, id)
+
+    return "Done"
+
+    # return shorts

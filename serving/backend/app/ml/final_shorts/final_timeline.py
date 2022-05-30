@@ -6,7 +6,7 @@ def make_final_timeline(laughter_timeline,person_timeline,max_length=None):
         shot_length = end-start
         length=0
         while p_timeline:
-            s,e = p_timeline.pop(0)
+            s, e = p_timeline.pop(0)
             if e<start:
                 continue
             if s>end:

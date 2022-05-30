@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter
-from ml.final_timeline import make_final_timeline
+from ml.face_functions import FinalTimeline
 
 router = APIRouter(tags=["highlight"])
 
@@ -8,7 +8,9 @@ async def read_highlight(timelines: dict):
     print(timelines)
     face_timeline = timelines['face']
     laugh_timeline = timelines['laugh']
+    id = timelines['id']
 
-    final_timeline = make_final_timeline(laugh_timeline, face_timeline)
+    make_shorts = FinalTimeline(laugh_timeline, face_timeline, id)
 
-    return {"id" : id , "timeline" : final_timeline}
+
+    return {"id" : id }
