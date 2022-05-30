@@ -5,5 +5,10 @@
         "use_clipped_video": false,
         "clip_start": 0,
         "clip_end": 60
+    },
+
+    "face_recognition" : {
+        "check_frame": 16,
+        "batch_size": 16
     }
 }

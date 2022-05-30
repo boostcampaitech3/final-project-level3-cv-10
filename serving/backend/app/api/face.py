@@ -9,7 +9,7 @@ from PIL import Image
 import base64
 import io
 
-from ml.face_timeline import make_face_timeline
+from ml.face_functions import FaceRecognition
 
 
 
@@ -66,16 +66,14 @@ async def show_people(id: UUID):
 @router.post("/timeline-face", description="face recognition을 통해 인물의 timeline을 추출한다.")
 async def get_timeline_face(info: dict):
     
-
     result_path = os.path.join(FILE_DIR, info['id'])
-    print(result_path)
+    
     image_file = os.listdir(os.path.join(result_path, 'result', info['face']))[0]
 
     video = os.path.join(result_path, 'original.mp4')
     image = os.path.join(result_path, 'result', info['face'], image_file)
-    # print(image)
 
-    timeline = make_face_timeline(video, image)
+    timeline = FaceRecognition(video, [image])
     # FE에서 선택한 사람을 받아 face recognition 진행 예정
     return {"id" : info['id'], "timeline": timeline}
 

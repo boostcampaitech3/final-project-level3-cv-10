@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from datetime import datetime
 import shutil
 
-from ml.face_clustering import FaceClustering
+from ml.face_functions import FaceClustering
 
 
 router = APIRouter(tags=["video"])
