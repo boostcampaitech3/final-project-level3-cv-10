@@ -9,7 +9,7 @@ from datetime import datetime
 import cv2
 import os
 
-import timm
+import time
 import torch
 from torch import nn
 import numpy as np
@@ -82,114 +82,65 @@ class FaceClassifier():
         except OSError as ex:
             print(f"skipping file...: {ex}")
             return None
-
-    # return list of dlib.rectangle
-    def locate_faces(self, frame):
-        if self.ratio == 1.0:
-            rgb = frame[:, :, ::-1]
-        else:
-            small_frame = cv2.resize(frame, (0, 0), fx=self.ratio, fy=self.ratio)
-            rgb = small_frame[:, :, ::-1]
-
-        boxes = face_recognition.face_locations(rgb, model='cnn') # model='cnn': use gpu in dlib
-
-        if self.ratio == 1.0:
-            return boxes
-
-        boxes_org_size = []
-        for box in boxes:
-            (top, right, bottom, left) = box
-            left = int(left / self.ratio)
-            right = int(right / self.ratio)
-            top = int(top / self.ratio)
-            bottom = int(bottom / self.ratio)
-            box_org_size = (top, right, bottom, left)
-            boxes_org_size.append(box_org_size)
-
-        return boxes_org_size
+        
 
     def detect_faces(self, frames, batch_size):
         # face locations
+        # rgb_frames = [x[:, :, ::-1] for x in frames]
         batch_face_locations = face_recognition.batch_face_locations(frames, number_of_times_to_upsample=0, batch_size=batch_size)
-        # face_boxes = self.locate_faces(frame) # box: (top, right, bottom, left)
-
-        # print('frames', len(frames), frames)
-        # print('batch_face_locations', len(batch_face_locations), batch_face_locations)
-
-        # 사람이 2명 ~ 4명 사이일 때만 수행
-        # new_frames = []
-        # 2명 ~ 4명 사이인 프레임만 가져오기
         frames = [frames[i] for i in range(len(frames)) if 2 <= len(batch_face_locations[i]) <= 4]
-        # for i in range(len(frames)):
-        #     if 2 <= len(batch_face_locations[i]) <= 4:
-        #         new_frames.append(frames[i])
-        # frames = list(new_frames)
-        # 2명 ~ 4명 사이인 face location만 가져오기
         batch_face_locations = [x for x in batch_face_locations if (2 <= len(x) <= 4)]
-
-        # print('frames', len(frames), frames)
-        # print('batch_face_locations', len(batch_face_locations), batch_face_locations)
-
-        # exit()
 
         if len(batch_face_locations) == 0:
             return None
-        # if len(face_boxes) <= 1 or len(face_boxes) >= 5:
-        #     return None
 
-        # faces found
         faces = []
         now = datetime.now()
         str_ms = now.strftime('%Y%m%d_%H%M%S.%f')[:-3] + '-'
 
-        # face_encodings
-        '''
-        Given an image, return the 128-dimension face encoding for each face in the image.
-
-        :param face_image: The image that contains one or more faces
-        :param known_face_locations: Optional - the bounding boxes of each face if you already know them.
-        :param num_jitters: How many times to re-sample the face when calculating encoding. Higher is more accurate, but slower (i.e. 100 is 100x slower)
-        :param model: Optional - which model to use. "large" or "small" (default) which only returns 5 points but is faster.
-        :return: A list of 128-dimensional face encodings (one for each face in the image)
-        '''
-        # face_encodings = face_recognition.face_encodings(frame, face_boxes, model='small')
-
-        # model for cloth encoding
         cloth_encoding_model = calc.get_model() # resnet
 
         fingerprints = dict()
-
+        face_encodings_batch = []
+        upper_body_images_batch = []
+        clothes_batch = []
+        
         for frame_number_in_batch, face_locations in enumerate(batch_face_locations):
-            face_encodings = face_recognition.face_encodings(frames[frame_number_in_batch], face_locations, model='small') # list 안에 인물 수만큼 numpy array
+            face_encodings = []
+            for face_location in face_locations:
+                top, right, bottom, left = face_location
+                resized_frame = cv2.resize(frames[frame_number_in_batch][top:bottom,left:right], dsize=(224,224))
+                resized_encodings = face_recognition.face_encodings(resized_frame,[(0,223,223,0)], model='small')[0] # list 안에 인물 수만큼 numpy array
+                face_encodings.append(resized_encodings)
             # crop face image
             upper_body_images, cloth_images = self.get_face_and_cloth_image(frames[frame_number_in_batch], face_locations) # list 형태로 반환
             # cloth preprocessing
             preprocessed_cloth_images = self.preprocess(cloth_images, (224,224))
-            # cloth encodings
-            cloth_encodings = calc.fingerprint(preprocessed_cloth_images, cloth_encoding_model, device = torch.device(device='cuda'))
+            
+            # save batch
+            face_encodings_batch.extend(face_encodings)
+            upper_body_images_batch.extend(upper_body_images)
+            clothes_batch.extend(preprocessed_cloth_images)
 
-            now = datetime.now()
-            str_ms = now.strftime('%Y%m%d_%H%M%S.%f')[:-3] + '-'
+        # cloth encodings
+        # if len(clothes_batch) > 30:
+        cloth_encodings = calc.fingerprint(clothes_batch, cloth_encoding_model, device = torch.device(device='cuda'))
 
-            for i in range(len(face_encodings)):
-                # normalize
-                normalized_face_encoding = face_encodings[i] / np.linalg.norm(face_encodings[i])
-                normalized_cloth_encoding = cloth_encodings[i] / np.linalg.norm(cloth_encodings[i])
-                # concat features [face | cloth]
-                face_weight, cloth_weight = 1, 2
-                encoding = np.concatenate((normalized_face_encoding*face_weight, normalized_cloth_encoding*cloth_weight), axis=0) # 128-d + 128-d
-                # encoding = normalized_face_encoding
-                # encoding = normalized_cloth_encoding
-                # encoding = face_encodings[i]
-                # encoding = cloth_encoding
-                # filename
-                filename = str_ms + str(i) + ".png"
-                # save image
-                # face = Face(str_ms + str(i) + ".png", upper_body_image, encoding)
-                filepath = os.path.join(self.save_dir, filename)
-                cv2.imwrite(filepath, upper_body_images[i])
-                print('image saved path: ', filepath)
-                # save fingerprint
-                fingerprints[filepath] = encoding
+        for i in range(len(face_encodings_batch)):
+            # normalize
+            normalized_face_encoding = face_encodings_batch[i] / np.linalg.norm(face_encodings_batch[i])
+            normalized_cloth_encoding = cloth_encodings[i] / np.linalg.norm(cloth_encodings[i])
+            # concat features [face | cloth]
+            face_weight, cloth_weight = 1, 2
+            encoding = np.concatenate((normalized_face_encoding*face_weight, normalized_cloth_encoding*cloth_weight), axis=0) # 128-d + 128-d
+
+            filename = str_ms + str(i) + ".png"
+            # save image
+            # face = Face(str_ms + str(i) + ".png", upper_body_image, encoding)
+            filepath = os.path.join(self.save_dir, filename)
+            cv2.imwrite(filepath, upper_body_images_batch[i])
+            print('image saved path: ', filepath)
+            # save fingerprint
+            fingerprints[filepath] = encoding
 
         return fingerprints
