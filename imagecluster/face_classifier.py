@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from person_db import Person
-from person_db import Face
-from person_db import PersonDB
+from .person_db import Person
+from .person_db import Face
+from .person_db import PersonDB
 import face_recognition
 import numpy as np
 from datetime import datetime
@@ -17,7 +17,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
-import calc
+from . import calc
 
 
 class FaceClassifier():

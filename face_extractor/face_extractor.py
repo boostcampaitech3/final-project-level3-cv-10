@@ -1,6 +1,3 @@
-from .person_db import Person
-from .person_db import Face
-from .person_db import PersonDB
 import face_recognition
 import face_recognition_models
 import numpy as np
@@ -11,9 +8,18 @@ from . import face_alignment_dlib
 import time
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import os.path as osp
+import sys
+import os
+import glob
+import matplotlib.pyplot as plt
+from imagecluster import FaceClassifier, calc, icio, postproc
+from imagecluster import Person, Face, PersonDB
+import random
+import torch
 
 class FaceExtractor:
-    def __init__(self, video_path, data_dir='data/', save_dir='result', sim_thresh=0.35, skip_seconds=1, use_clipped_video=False, clip_start=0, clip_end=60):
+    def __init__(self, video_path, data_dir='data/', save_dir='result', threshold=0.36, skip_seconds=1, use_clipped_video=False, clip_start=0, clip_end=60,
+                frame_batch_size=32, stop=300, skip=0, face_cnt=150, capture_cnt=60, ratio=1.0):
         '''
         :param video_path : input video absolute path
         :param sim_thresh : similarity threshold for comparing two faces
@@ -24,6 +30,12 @@ class FaceExtractor:
         self.person_id = 0
         self.save_dir = save_dir
         self.data_dir = data_dir
+        self.frame_batch_size = frame_batch_size
+        self.stop = stop
+        self.skip = skip
+        self.face_cnt = face_cnt
+        self.capture_cnt = capture_cnt
+        self.ratio = ratio
 
         self.video_path = video_path
         if not use_clipped_video:

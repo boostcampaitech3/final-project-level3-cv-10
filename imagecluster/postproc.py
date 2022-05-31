@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 # from . import calc as ic
-import calc as ic
+from .import calc as ic
 
 pj = os.path.join
 
