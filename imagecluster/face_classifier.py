@@ -88,8 +88,8 @@ class FaceClassifier():
         # face locations
         # rgb_frames = [x[:, :, ::-1] for x in frames]
         batch_face_locations = face_recognition.batch_face_locations(frames, number_of_times_to_upsample=0, batch_size=batch_size)
-        frames = [frames[i] for i in range(len(frames)) if 2 <= len(batch_face_locations[i]) <= 4]
-        batch_face_locations = [x for x in batch_face_locations if (2 <= len(x) <= 4)]
+        frames = [frames[i] for i in range(len(frames)) if 1 <= len(batch_face_locations[i]) <= 4]
+        batch_face_locations = [x for x in batch_face_locations if (1 <= len(x) <= 4)]
 
         if len(batch_face_locations) == 0:
             return None
