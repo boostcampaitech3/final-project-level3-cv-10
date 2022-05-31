@@ -53,17 +53,20 @@ def FaceRecognition(video_path: str="", target_path: str=""):
 
 
 ########## Final Timeline ############
-def FinalTimeline(laugh_timeline, people_timeline, id):
+def FinalTimeline(laugh_timeline : list, people_timeline : dict, id : str):
     # shorts = []
 
-    for target_person_timeline in people_timeline:
-        final_timeline, total_length = make_final_timeline(laugh_timeline, target_person_timeline)
-        # print("final_timeline : ")
-        # print(final_timeline)
-        # print(total_length)
-        # shorts.append(final_timeline)
-        make_shorts(final_timeline, total_length, id)
+    shorts = []
+    for target_person in iter(people_timeline.keys()):
+        # print(people_timeline[target_person])
+        final_timeline, total_length = make_final_timeline(laugh_timeline, people_timeline[target_person])
+        
+        target_person_shorts = make_shorts(final_timeline, total_length, id, target_person)
 
-    return "Done"
+        if len(target_person_shorts) > 0:
+            for target_person_short in target_person_shorts:
+                shorts.append(target_person_short)
+            
+    return shorts
 
     # return shorts

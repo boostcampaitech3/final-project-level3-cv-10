@@ -82,12 +82,14 @@ class FaceRecognizer:
     
     def make_people_timeline(self,frames):
         fps = self.src_info['fps']
-        people_timeline = []
+        # people_timeline = []
         for frame in frames:
-            if len(frame)==0:
-                people_timeline.append([])
-                continue
             person_timeline=[]
+            if len(frame)==0:
+                # people_timeline.append([])
+                person_timeline.append([])
+                continue
+            # person_timeline=[]
             start=frame[0]
             end=frame[0]
             for f in frame:
@@ -97,5 +99,6 @@ class FaceRecognizer:
                 else:
                     end = f
             person_timeline.append((round((start-8)/fps,2),round(end/fps,2)))
-            people_timeline.append(person_timeline)
-        return people_timeline
+            # people_timeline.append(person_timeline)
+        # return people_timeline
+        return person_timeline
