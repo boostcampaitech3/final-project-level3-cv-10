@@ -1,4 +1,9 @@
 from face_extractor.face_extractor import FaceExtractor
+import os
+import os.path as osp
+
+if not osp.isdir('/opt/ml/input/final-project-level3-cv-10/scene_detection_imgs'):
+    os.makedirs('/opt/ml/input/final-project-level3-cv-10/scene_detection_imgs')
 
 extractor = FaceExtractor(
     '/opt/ml/input/final-project-level3-cv-10/data/sample1_0-300s.mp4',

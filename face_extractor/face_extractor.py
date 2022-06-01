@@ -131,8 +131,8 @@ class FaceExtractor:
                 frames.append(start_org_frame)
                 frames.append(last_org_frame)
                 
-                cv2.imwrite("cluster_test/{}.png".format(start_frame_idx), start_org_frame)
-                cv2.imwrite("cluster_test/{}.png".format(frame_idx - 1), last_org_frame)
+                cv2.imwrite("scene_detection_imgs/{}.png".format(start_frame_idx), start_org_frame)
+                cv2.imwrite("scene_detection_imgs/{}.png".format(frame_idx - 1), last_org_frame)
                 start_frame_idx = frame_idx
                 start_down_frame = cur_down_frame
                 start_org_frame = frame
