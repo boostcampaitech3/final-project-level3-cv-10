@@ -9,7 +9,7 @@ const Video = ({index, shorts, URL, response}) => {
     const [hover, setHover] = useState(false);
     const [visible, setVisible] = useState(false);
 
-    const get_time = (seconds) => {
+    const getTime = (seconds) => {
         let min = parseInt((seconds % 3600)/60);
         let sec = seconds % 60;
         if (sec < 10)
@@ -70,7 +70,7 @@ const Video = ({index, shorts, URL, response}) => {
                     <div style={{paddingLeft: "15px", paddingRight: "10px", textAlign: "left",flexGrow: "1", justifyContent: "center", fontSize: "15px"}}
                         onClick={() => setVisible(true)}>
                         <div style={{fontWeight: "bold"}}>{shorts[index][1]}</div>
-                        <div style={{color: "#555555"}}>{get_time(shorts[index][2])}</div>
+                        <div style={{color: "#555555"}}>{getTime(shorts[index][2])}</div>
                         <div style={{color: "#555555"}}>keywords</div>
                     </div>
                     <div>
