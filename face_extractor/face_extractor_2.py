@@ -10,6 +10,7 @@ from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import os.path as osp
 import sys
 import os
+import os.path as osp
 import glob
 import matplotlib.pyplot as plt
 from imagecluster import FaceClassifier, calc, icio, postproc
@@ -18,8 +19,8 @@ import random
 import torch
 
 class FaceExtractor:
-    def __init__(self, video_path, data_dir='data/', result_dir='result', threshold=0.36, skip_seconds=1, use_clipped_video=True, clip_start=0, clip_end=60,
-                frame_batch_size=32, stop=300, skip=0, face_cnt=150, capture_cnt=60, ratio=1.0):
+    def __init__(self, video_path, data_dir='data/', result_dir='result', threshold=0.62, skip_seconds=3, use_clipped_video=True, clip_start=0, clip_end=60,
+                frame_batch_size=16, stop=300, skip=0, face_cnt=150, capture_cnt=60, ratio=1.0):
         '''
         :param video_path : input video absolute path
         :param sim_thresh : similarity threshold for comparing two faces
@@ -40,6 +41,9 @@ class FaceExtractor:
         self.capture_cnt = capture_cnt
         self.ratio = ratio
         self.threshold = threshold
+        
+        if not osp.isdir(self.result_dir):
+            os.makedirs(self.result_dir)
         
         # Clip
         if not use_clipped_video:
@@ -98,8 +102,6 @@ class FaceExtractor:
                 if frame_fingerprints:
                     fingerprints.update(frame_fingerprints)
                     print("Face images: ", len(fingerprints))
-                    cnt += 1
-                    print('frame cnt: ', cnt)
                     
                 frames = []
                 
@@ -119,6 +121,9 @@ class FaceExtractor:
         clusters = calc.cluster(fingerprints, sim=self.threshold, method='single', min_csize=3)
         postproc.make_links(clusters, osp.join(self.result_dir, 'imagecluster/clusters'))
         images = icio.read_images(self.result_dir, size=(224, 224))
+        fig, ax = postproc.plot_clusters(clusters, images)
+        fig.savefig(os.path.join(result_dir, 'imagecluster/_cluster.png'))
+        postproc.plt.show()
         return clusters
         
 

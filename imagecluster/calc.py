@@ -6,7 +6,7 @@ from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from sklearn.decomposition import PCA
 
-from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
+#  from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
 # from tensorflow.keras.models import Model
 # import tensorflow.keras as keras
 import torchvision.transforms as transforms
@@ -73,7 +73,7 @@ def get_model():
         torch.nn.Flatten()
     )
     '''
-    
+
     '''pytorch - resnet18'''
     base_model = models.resnet18(pretrained=True)
     model = torch.nn.Sequential(
@@ -81,7 +81,7 @@ def get_model():
         torch.nn.AdaptiveAvgPool2d((1,1)),
         torch.nn.Flatten()
     )
-    
+
 
     return model
 
@@ -89,9 +89,9 @@ def get_model():
 def fingerprint(pil_images, model, device):
 
     # pil_images = [Image.fromarray((image).astype(np.uint8)) for image in images]
-    
+
     arr4ds_tt = [torch.FloatTensor(data_transform(pil_image)) for pil_image in pil_images]
-    
+
     arr4d_tt = torch.stack(arr4ds_tt)
 
     model = model.to(device)
