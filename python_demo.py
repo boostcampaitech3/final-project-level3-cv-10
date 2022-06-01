@@ -1,9 +1,11 @@
-from face_extractor.face_extractor_2 import FaceExtractor
+from face_extractor.face_extractor import FaceExtractor
 
 extractor = FaceExtractor(
     '/opt/ml/input/final-project-level3-cv-10/data/sample1_0-300s.mp4',
     '/opt/ml/input/final-project-level3-cv-10/data/',
-    '/opt/ml/input/final-project-level3-cv-10/result'
+    '/opt/ml/input/final-project-level3-cv-10/result',
+    threshold=0.57,
+    face_cnt=200
 )
 
 import face_recognition
@@ -21,6 +23,5 @@ check_use_gpu(TARGET_IMG_PATH)
 
 
 fingerprints = extractor.extract_fingerprints()
-print(fingerprints)
-#  clusters = extractor.cluster_fingerprints(fingerprints)
+clusters = extractor.cluster_fingerprints(fingerprints)
 #  print(clusters)

@@ -10,6 +10,7 @@ from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import os.path as osp
 import sys
 import os
+import os.path as osp
 import glob
 import matplotlib.pyplot as plt
 from imagecluster import FaceClassifier, calc, icio, postproc
@@ -18,8 +19,8 @@ import random
 import torch
 
 class FaceExtractor:
-    def __init__(self, video_path, data_dir='data/', save_dir='result', threshold=0.36, skip_seconds=1, use_clipped_video=False, clip_start=0, clip_end=60,
-                frame_batch_size=32, stop=300, skip=0, face_cnt=150, capture_cnt=60, ratio=1.0):
+    def __init__(self, video_path, data_dir='data/', result_dir='result', threshold=0.48, skip_seconds=3, use_clipped_video=True, clip_start=0, clip_end=60,
+                frame_batch_size=16, stop=300, skip=0, face_cnt=250, capture_cnt=60, ratio=1.0): # face_cnt=150 원래
         '''
         :param video_path : input video absolute path
         :param sim_thresh : similarity threshold for comparing two faces
@@ -27,195 +28,158 @@ class FaceExtractor:
         :use_clipped_video : whether the given video_path refers to the original(long) video or clipped(short) video.
                             if original, then automatically clip it to shorter video for faster procesing
         '''
-        self.person_id = 0
-        self.save_dir = save_dir
+        # Path
+        self.video_path = video_path
         self.data_dir = data_dir
+        self.result_dir = result_dir
+        
+        # Clustering configs
         self.frame_batch_size = frame_batch_size
         self.stop = stop
         self.skip = skip
         self.face_cnt = face_cnt
         self.capture_cnt = capture_cnt
         self.ratio = ratio
-
-        self.video_path = video_path
+        self.threshold = threshold
+        
+        if not osp.isdir(self.result_dir):
+            os.makedirs(self.result_dir)
+        
+        # Clip
         if not use_clipped_video:
             self.clip_video(clip_start, clip_end) # save clipped video to data_dir
 
-        print("video_path:", self.video_path)
-
+        # Import video
         self.src = cv2.VideoCapture(self.video_path)
-        self.sim_thresh = sim_thresh
         self.skip_seconds = skip_seconds
         self.skip_frames = int(round(self.src.get(5) * self.skip_seconds))
 
         self.src_info = {
             'frame_w': self.src.get(cv2.CAP_PROP_FRAME_WIDTH),
             'frame_h': self.src.get(cv2.CAP_PROP_FRAME_HEIGHT),
-            'frame_rate': self.src.get(cv2.CAP_PROP_FPS),
+            'fps': self.src.get(cv2.CAP_PROP_FPS),
             'num_frames': self.src.get(cv2.CAP_PROP_FRAME_COUNT),
             'num_seconds': self.src.get(cv2.CAP_PROP_FRAME_COUNT) / self.src.get(cv2.CAP_PROP_FPS)
         }
-
-        self.predictor = dlib.shape_predictor(face_recognition_models.pose_predictor_model_location())
+        
+        # Face Classifier
+        self.fc = FaceClassifier(self.threshold, self.ratio, self.result_dir)
+        
         self._print_src_info()
-        self.pdb = PersonDB()
 
 
-    def extract_faces(self):
+    def extract_fingerprints(self):
         total_start_time = time.time()
-        frame_cnt = 0
+        
+        fingerprints = dict()
+        frames = []
+        frame_idx = 0
+        cnt = 0
+        
+        # Scene Detection
+        last_down_frame = None
+        last_org_frame = None
+        
+        start_frame_idx = 0
+        start_down_frame = None
+        start_org_frame = None
+        min_scene_frames = 15
+        timelines = []
+        down_scale_factor = 8
+        transition_threshold = 100
 
         while True:
             success, frame = self.src.read()
             if frame is None:
                 break
-
-            frame_cnt += 1
-            if frame_cnt % self.skip_frames != 0:
+            
+            ###### Preprocessing ######
+            seconds = int(round(frame_idx / self.src_info['fps'], 3))
+            
+            # Maximum seconds to explore
+            if seconds > self.stop > 0:
+                break
+            
+            # Skip first n seconds
+            if seconds < self.skip:
                 continue
-
-            start_time = time.time()
-            faces = self.detect_faces(frame)
-            for face in faces:
-                person = self.compare_with_known_persons(face, self.pdb.persons)
-                if person:
-                    continue
-
-                person = self.compare_with_unknown_faces(face, self.pdb.unknown.faces)
-                if person:
-                    self.pdb.persons.append(person)
-
-            elapsed_time = time.time() - start_time
-
-            s = "\rframe " + str(frame_cnt)
-            #  s += " @ time %.3f" % seconds
-            s += " takes %.3f second" % elapsed_time
-            s += ", %d new faces" % len(faces)
-            s += " -> " + repr(self.pdb)
-            print(s, end="    ")
+                
+            ####### Scene Detection Algorithm ######
+            cur_down_frame = frame[::down_scale_factor, ::down_scale_factor, :]
+            
+            if last_down_frame is None:
+                last_down_frame = cur_down_frame
+                last_org_frame = frame
+                start_frame_idx = frame_idx
+                start_down_frame = cur_down_frame
+                start_org_frame = frame
+                frame_idx += 1
+                continue
+                
+            num_pixels = cur_down_frame.shape[0] * cur_down_frame.shape[1]
+            rgb_distance = np.abs(cur_down_frame - last_down_frame) / float(num_pixels)
+            rgb_distance = rgb_distance.sum() / 3.0
+            last_down_frame = cur_down_frame
+            last_org_frame = frame
+            
+            if rgb_distance > transition_threshold and frame_idx - start_frame_idx > min_scene_frames:
+                print("({}~{})".format(start_frame_idx, frame_idx), "| idx", frame_idx)
+                
+                start_org_frame = cv2.resize(start_org_frame, None, fx=0.8, fy=0.8)
+                last_org_frame = cv2.resize(last_org_frame, None, fx=0.8, fy=0.8)
+                
+                frames.append(start_org_frame)
+                frames.append(last_org_frame)
+                
+                cv2.imwrite("cluster_test/{}.png".format(start_frame_idx), start_org_frame)
+                cv2.imwrite("cluster_test/{}.png".format(frame_idx - 1), last_org_frame)
+                start_frame_idx = frame_idx
+                start_down_frame = cur_down_frame
+                start_org_frame = frame
+                
+            if len(frames) < self.frame_batch_size:
+                frame_idx += 1
+                continue
+                
+            print("Frames len: ", len(frames))
+   
+           
+            ##### Face Detection #####
+            # # Explore every n frame
+            # if frame_cnt % self.skip_frames == 0:
+            #     if frame.shape[0] > 1000:
+            #         frame = cv2.resize(frame, None, fx=0.6, fy=0.6)
+            #     frames.append(frame)
+                
+            if len(frames) == self.frame_batch_size:
+                frame_fingerprints = self.fc.detect_faces(frames, self.frame_batch_size)
+                if frame_fingerprints:
+                    fingerprints.update(frame_fingerprints)
+                    print("Face images: ", len(fingerprints))
+                    
+                frames = []
+                
+            if len(fingerprints) >= self.face_cnt:
+                break
+                
+            frame_idx += 1
 
         self.src.release()
-        self.pdb.save_db(self.save_dir)
-        self.pdb.print_persons()
-
         total_end_time = time.time()
-
         print("Total Time Taken: {} seconds".format(total_end_time - total_start_time))
+        print("Captured frames: ", frame_idx)
 
-        return self.pdb
-
-
-
-    def get_face_image(self, frame, box):
-        img_height, img_width = frame.shape[:2]
-        (box_top, box_right, box_bottom, box_left) = box
-        box_width = box_right - box_left
-        box_height = box_bottom - box_top
-        crop_top = max(box_top - box_height, 0)
-        pad_top = -min(box_top - box_height, 0)
-        crop_bottom = min(box_bottom + box_height, img_height - 1)
-        pad_bottom = max(box_bottom + box_height - img_height, 0)
-        crop_left = max(box_left - box_width, 0)
-        pad_left = -min(box_left - box_width, 0)
-        crop_right = min(box_right + box_width, img_width - 1)
-        pad_right = max(box_right + box_width - img_width, 0)
-        face_image = frame[crop_top:crop_bottom, crop_left:crop_right]
-        if (pad_top == 0 and pad_bottom == 0):
-            if (pad_left == 0 and pad_right == 0):
-                return face_image
-        padded = cv2.copyMakeBorder(face_image, pad_top, pad_bottom,
-                                    pad_left, pad_right, cv2.BORDER_CONSTANT)
-        return padded
-
-
-    # return list of dlib.rectangle
-    def locate_faces(self, frame):
-        #start_time = time.time()
-        rgb = frame[:, :, ::-1]
-        boxes = face_recognition.face_locations(rgb)
-        #elapsed_time = time.time() - start_time
-        #print("locate_faces takes %.3f seconds" % elapsed_time)
-        return boxes
-
-
-    def detect_faces(self, frame):
-        boxes = self.locate_faces(frame)
-        if len(boxes) == 0:
-            return []
-
-        # faces found
-        faces = []
-        now = datetime.now()
-        str_ms = now.strftime('%Y%m%d_%H%M%S.%f')[:-3] + '-'
-
-        for i, box in enumerate(boxes):
-            # extract face image from frame
-            face_image = self.get_face_image(frame, box)
-
-            # get aligned image
-            aligned_image = face_alignment_dlib.get_aligned_face(self.predictor, face_image)
-
-            # compute the encoding
-            height, width = aligned_image.shape[:2]
-            x = int(width / 3)
-            y = int(height / 3)
-            box_of_face = (y, x*2, y*2, x)
-            encoding = face_recognition.face_encodings(aligned_image,
-                                                       [box_of_face])[0]
-
-            face = Face(str_ms + str(i) + ".png", face_image, encoding)
-            face.location = box
-            # cv2.imwrite(str_ms + str(i) + ".r.png", aligned_image)
-            faces.append(face)
-        return faces
-
-
-    def compare_with_known_persons(self, face, persons):
-        if len(persons) == 0:
-            return None
-
-        # see if the face is a match for the faces of known person
-        encodings = [person.encoding for person in persons]
-        distances = face_recognition.face_distance(encodings, face.encoding)
-        index = np.argmin(distances)
-        min_value = distances[index]
-        if min_value < self.sim_thresh:
-            # face of known person
-            persons[index].add_face(face)
-            # re-calculate encoding
-            persons[index].calculate_average_encoding()
-            face.name = persons[index].name
-            return persons[index]
-
-
-    def compare_with_unknown_faces(self, face, unknown_faces):
-        if len(unknown_faces) == 0:
-            # this is the first face
-            unknown_faces.append(face)
-            face.name = "unknown"
-            return
-
-        encodings = [face.encoding for face in unknown_faces]
-        distances = face_recognition.face_distance(encodings, face.encoding)
-        index = np.argmin(distances)
-        min_value = distances[index]
-        if min_value < self.sim_thresh:
-            # two faces are similar - create new person with two faces
-            person = Person(person_id=self.person_id) #
-            self.person_id += 1 #
-            newly_known_face = unknown_faces.pop(index)
-            person.add_face(newly_known_face)
-            person.add_face(face)
-            person.calculate_average_encoding()
-            face.name = person.name
-            newly_known_face.name = person.name
-            return person
-        else:
-            # unknown face
-            unknown_faces.append(face)
-            face.name = "unknown"
-            return None
-
+        return fingerprints
+    
+    def cluster_fingerprints(self, fingerprints):
+        clusters = calc.cluster(fingerprints, sim=self.threshold, method='single', min_csize=3)
+        postproc.make_links(clusters, osp.join(self.result_dir, 'imagecluster/clusters'))
+        images = icio.read_images(self.result_dir, size=(224, 224))
+        fig, ax = postproc.plot_clusters(clusters, images)
+        fig.savefig(os.path.join(self.result_dir, 'imagecluster/_cluster.png'))
+        postproc.plt.show()
+        return clusters
+        
 
     def clip_video(self, start, end):
         print("-"*80)
@@ -233,10 +197,10 @@ class FaceExtractor:
         print("-"*80)
         print("[Source Video File]: {}".format(self.video_path))
         print("[Frame resolution H x W]: ({} x {})".format(self.src_info['frame_h'], self.src_info['frame_w']))
-        print("[Frame rate]: {}".format(int(self.src_info['frame_rate'])))
+        print("[FPS]: {}".format(int(self.src_info['fps'])))
         print("[Total number of frames]: {}".format(int(self.src_info['num_frames'])))
         print("[Total number of seconds]: {}".format(int(self.src_info['num_seconds'])))
-        print("[Similiarty Threshold]: {}".format(self.sim_thresh))
+        print("[Similiarty Threshold]: {}".format(self.threshold))
         print("Process every {} secs ({} frames)".format(self.skip_seconds, self.skip_frames))
         print("-"*80)
 
