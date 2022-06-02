@@ -74,9 +74,8 @@ class FaceExtractor:
         self._print_src_info()
         
         self.seed_everything(79)
-        
-        TARGET_IMG_PATH = "/opt/ml/input/final-project-level3-cv-10/data/img1.png"
-        self.check_use_gpu(TARGET_IMG_PATH) 
+
+        self.initialize_gpu()
 
     
     def cluster_video(self):
@@ -381,12 +380,11 @@ class FaceExtractor:
         print("-"*80)
         print("[Source Video File]: {}".format(self.video_path))
         print("[Frame resolution H x W]: ({} x {})".format(self.src_info['frame_h'], self.src_info['frame_w']))
-        print("[FPS]: {}".format(int(self.src_info['fps'])))
+        print("[FPS]: {}".format(round(self.src_info['fps'],2)))
         print("[Total number of frames]: {}".format(int(self.src_info['num_frames'])))
         print("[Total number of seconds]: {}".format(int(self.src_info['num_seconds'])))
         print("[Similiarty Threshold]: {}".format(self.threshold))
         print("[Number of target faces for clustering]: {}".format(self.face_cnt))
-        print("Process every {} secs ({} frames)".format(self.skip_seconds, self.skip_frames))
         print("-"*80)
 
 
@@ -410,13 +408,10 @@ class FaceExtractor:
         torch.backends.cudnn.deterministic = True  # type: ignore
         torch.backends.cudnn.benchmark = False  # type: ignore
         
-    def check_use_gpu(self, TARGET_IMG_PATH):
-        image = face_recognition.load_image_file(TARGET_IMG_PATH)
-        face_locations = face_recognition.face_locations(image,model='cnn')
-        if len(face_locations) > 0:
-            print('Using GPU')
-        else:
-            print('***Not using GPU***')
+        
+    def initialize_gpu(self):
+        test = np.array(np.random.rand(10,10,3),dtype='uint8')
+        face_recognition.face_locations(test,model='cnn')
             
     
     def plot_clusters(self):
