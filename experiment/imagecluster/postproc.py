@@ -76,7 +76,7 @@ def make_links(clusters, cluster_dr):
     cluster_dr : str
         path
     """
-    print("cluster dir: {}".format(cluster_dr))
+    # print("cluster dir: {}".format(cluster_dr))
     if os.path.exists(cluster_dr):
         shutil.rmtree(cluster_dr)
     for csize, group in clusters.items():

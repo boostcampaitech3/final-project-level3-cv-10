@@ -29,4 +29,4 @@ check_use_gpu(TARGET_IMG_PATH)
 
 fingerprints = extractor.extract_fingerprints()
 clusters = extractor.cluster_fingerprints(fingerprints)
-#  print(clusters)
+print(clusters)

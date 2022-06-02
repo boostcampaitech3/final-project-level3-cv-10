@@ -131,7 +131,7 @@ class FaceClassifier():
             normalized_face_encoding = face_encodings_batch[i] / np.linalg.norm(face_encodings_batch[i])
             normalized_cloth_encoding = cloth_encodings[i] / np.linalg.norm(cloth_encodings[i])
             # concat features [face | cloth]
-            face_weight, cloth_weight = 1, 0.5
+            face_weight, cloth_weight = 1, 0.7
             encoding = np.concatenate((normalized_face_encoding*face_weight, normalized_cloth_encoding*cloth_weight), axis=0) # 128-d + 128-d
 
             filename = str_ms + str(i) + ".png"
@@ -139,7 +139,7 @@ class FaceClassifier():
             # face = Face(str_ms + str(i) + ".png", upper_body_image, encoding)
             filepath = os.path.join(self.save_dir, filename)
             cv2.imwrite(filepath, upper_body_images_batch[i])
-            print('image saved path: ', filepath)
+            # print('image saved path: ', filepath)
             # save fingerprint
             fingerprints[filepath] = encoding
 

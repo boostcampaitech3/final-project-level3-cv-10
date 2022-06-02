@@ -144,7 +144,7 @@ def fingerprints(images, model):
     """
     fingerprints = {}
     for fn,image in images.items():
-        print(fn)
+        # print(fn)
         fingerprints[fn] = fingerprint(image, model)
     return fingerprints
 
@@ -173,7 +173,7 @@ def pca(fingerprints, n_components=0.9, **kwds):
 
 
 def cluster(fingerprints, sim=0.5, timestamps=None, alpha=0.3, method='average',
-            metric='euclidean', extra_out=False, print_stats=True, min_csize=2):
+            metric='euclidean', extra_out=False, print_stats=False, min_csize=2):
     """Hierarchical clustering of images based on image fingerprints,
     optionally scaled by time distance (`alpha`).
 
@@ -249,6 +249,7 @@ def cluster(fingerprints, sim=0.5, timestamps=None, alpha=0.3, method='average',
     # cut=[12,  3, 29, 14, 28, 27,...]: image i belongs to cluster cut[i]
     cut = hierarchy.fcluster(Z, t=dfps.max()*(1.0-sim), criterion='distance')
     cluster_dct = dict((iclus, []) for iclus in np.unique(cut))
+
     for iimg,iclus in enumerate(cut):
         cluster_dct[iclus].append(files[iimg])
     # group all clusters (cluster = list_of_files) of equal size together
@@ -263,8 +264,9 @@ def cluster(fingerprints, sim=0.5, timestamps=None, alpha=0.3, method='average',
                 clusters[csize] = [cluster]
             else:
                 clusters[csize].append(cluster)
-    if print_stats:
-        print_cluster_stats(clusters)
+
+    # if print_stats:
+    #     print_cluster_stats(clusters)
     if extra_out:
         extra = {'Z': Z, 'dfps': dfps, 'cluster_dct': cluster_dct, 'cut': cut}
         return clusters, extra
