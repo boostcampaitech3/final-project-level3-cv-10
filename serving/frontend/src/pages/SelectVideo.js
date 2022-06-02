@@ -5,7 +5,8 @@ import { DownloadPanel } from '../components';
 import { Video } from '../components';
 
 
-const STORAGE = "https://storage.googleapis.com/snowman-storage/";
+// const STORAGE = "https://storage.googleapis.com/snowman-storage/";
+const STORAGE = "https://storage.googleapis.com/snowman-bucket/";
 
 const fake_response = {
     "id": "79b364b9-0f28-4d95-a2c5-23883e2cba2e",
