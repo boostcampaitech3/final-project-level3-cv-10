@@ -52,7 +52,7 @@ function SelectPerson() {
                 <video width="60%" controls>
                     <source src={location.state.video}></source>
                 </video>
-                <PeoplePanel people={people} id={location.state.id} filename = {filename}/>
+                <PeoplePanel people={people} id={location.state.id} id_laughter={location.state.id_laughter} filename = {filename}/>
             </StyledArea>
         </div>
     );

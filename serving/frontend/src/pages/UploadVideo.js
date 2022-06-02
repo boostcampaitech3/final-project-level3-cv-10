@@ -68,7 +68,7 @@ function UploadVideo() {
     const getFaceClustering = () => {
       return axios({
         method: "post",
-        url: "http://118.67.130.53:30001/upload-video",
+        url: "http://101.101.218.23:30001/upload-video",
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -79,7 +79,7 @@ function UploadVideo() {
     const getLaughterDetection = () => {
       return axios({
         method: "post",
-        url: "http://118.67.130.53:30003/timeline-laughter",
+        url: "http://118.67.130.53:30003/upload-video",
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -92,7 +92,8 @@ function UploadVideo() {
           setLoading(false);
           setNext(true);
           var tmp = { ...face_clustering.data};
-          tmp["laughter_timeline"] = laughter_detection.data.laughter_timeline;
+          // tmp["laughter_timeline"] = laughter_detection.data.laughter_timeline;
+          tmp["id_laughter"] = laughter_detection.data.id_laughter;
           setRes(tmp);
           console.log(tmp);
       })).catch((error) => {
@@ -128,7 +129,7 @@ function UploadVideo() {
         <p style={{color: '#777777'}}>인물을 선택하면 </p>
         <p style={{color: '#aaaaaa'}}>#눈#사람이 자동으로 쇼츠를 추출합니다.</p>
       </StyledIntro>
-      <Spin spinning={loading} size="large" tip="Extracting faces and laughter timeline...">
+      <Spin spinning={loading} size="large" tip="Extracting faces...">
         <StyledUpload>
           <form onSubmit={uploadModule}>
             <p style={{fontSize: '18px', color: '#707070', fontWeight: 'bold'}}>원본 영상을 업로드해주세요.</p>
