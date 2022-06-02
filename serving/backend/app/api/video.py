@@ -6,7 +6,13 @@ from uuid import UUID, uuid4
 from datetime import datetime
 import shutil
 
-from ml.face_clustering import FaceClustering
+# # google cloud storage
+# from google.cloud import storage
+# storage_client = storage.Client()
+# bucket_name = 'snowman-bucket'
+# bucket = storage_client.batch(bucket_name)
+
+from ml.face_functions import FaceClustering
 
 
 router = APIRouter(tags=["video"])

@@ -9,7 +9,7 @@ from PIL import Image
 import base64
 import io
 
-from ml.face_timeline import make_face_timeline
+from ml.face_functions import FaceRecognition
 
 
 
@@ -65,19 +65,34 @@ async def show_people(id: UUID):
 
 @router.post("/timeline-face", description="face recognition을 통해 인물의 timeline을 추출한다.")
 async def get_timeline_face(info: dict):
+    """face recognition을 통하여 인물의 timeline을 추출한다.
+
+    Args:
+        info (dict): request body
+            id (str) : 영상을 구분할 수 있는 영상 고유의 UUID
+            face (list) : face recognition을 진행할 사람들에 해당하는 list ex) ["person_00", "person_02"]
+
+
+    Returns:
+        Response (dict) : 영상에 대한 UUID와 인물에 대한 timeline을 제공
+            id (str) : 영상을 구분할 수 있는 영상 고유의 UUID
+            face_timelines (dict) : 특정 인물들에 대한 timeline을 list형태로 제공 ex) face_timelines : {"person_00" : [[]], "person_03" : [[]]}
+    """
     
-
     result_path = os.path.join(FILE_DIR, info['id'])
-    print(result_path)
-    image_file = os.listdir(os.path.join(result_path, 'result', info['face']))[0]
-
     video = os.path.join(result_path, 'original.mp4')
-    image = os.path.join(result_path, 'result', info['face'], image_file)
-    # print(image)
 
-    timeline = make_face_timeline(video, image)
+    timelines = {}
+    
+    for face in info['face']:
+        image_file = os.listdir(os.path.join(result_path, 'result', face))[0]
+
+        image = os.path.join(result_path, 'result', face, image_file)
+
+        timeline = FaceRecognition(video, [image])
+        timelines[face] = timeline
     # FE에서 선택한 사람을 받아 face recognition 진행 예정
-    return {"id" : info['id'], "timeline": timeline}
+    return {"id" : info['id'], "face_timelines": timelines}
 
 
 # TODO: /show-people (face clustering 결과 보여주기)
