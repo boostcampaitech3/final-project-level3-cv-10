@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { Col, Row, Checkbox } from 'antd';
 import { DownloadPanel } from '../components';
 import { Video } from '../components';
+import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 
 // const STORAGE = "https://storage.googleapis.com/snowman-storage/";
@@ -29,22 +31,48 @@ const fake_response = {
 
 
 function SelectVideo() {
+
+    const location = useLocation();
+    console.log(location.state);
     
-    const URL = STORAGE + fake_response.id;
+
+    const [fake_response, setFakeResponse] = useState({});
+    const [URL, setURL] = useState('');
+    const [shorts_list, setShortsList] = useState([]);
+    
+    // const URL = STORAGE + fake_response.id;
 
     const [checkedList, setCheckedList] = useState([]);
     const [checkAll, setCheckAll] = useState(false);
 
+    
+
     // 콘솔 확인용
     useEffect(() => {
-        console.log(fake_response);
+        console.log(location.state);
+        const getPeople = async () => {
+            const URL = "http://101.101.218.23:30001/timeline-highlight";
+            await axios.post(URL, {"id": location.state.id, "face" : location.state.face, "laugh": location.state.laugh}
+            ).then((response) => {
+                console.log(response);
+                // setFakeResponse(response);
+                // setURL(STORAGE + response.data.id);
+                // setShortsList(fake_response.shorts.map(function (element) {
+                //     return element[1];
+                // }));
+            }).catch((error) => {
+                console.log('Failure :(');
+            });
+        };
+        getPeople();
     }, []);
 
-    const shorts_list = fake_response.shorts.map(function (element) {
-        return element[1];
-    });
+    // const shorts_list = fake_response.shorts.map(function (element) {
+    //     return element[1];
+    // });
 
     const renderCards = (shorts) => {
+        // shorts.preventDefault();
         const cards = [];
         // score 내림차순으로 정렬
         shorts.sort((a, b) => b[3] - a[3]);

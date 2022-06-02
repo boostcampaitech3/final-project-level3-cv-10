@@ -2,6 +2,7 @@ import { Radio, Spin } from 'antd';
 import axios from 'axios';
 import { useState } from 'react';
 import styled from "styled-components";
+import { useNavigate } from 'react-router-dom';
 
 
 const StyledPanel = styled.div`
@@ -40,6 +41,8 @@ function PeoplePanel(props) {
     const [value, setValue] = useState('');
     const [timeline, setTimeline] = useState();
     const [id, setId] = useState();
+    const [res, setRes] = useState({});
+    const navigate = useNavigate();
 
     const onChange = (e) => {
         console.log('Selected Person:', e.target.value);
@@ -63,6 +66,8 @@ function PeoplePanel(props) {
         return people_imgs;
     };
 
+    const handleClick = (tmp) => { navigate("/select-video", { state : tmp }); };
+
 
     const radioButton = (people) => {
         const buttons = [];
@@ -83,18 +88,39 @@ function PeoplePanel(props) {
 
     const personSelect = async(e) => {
         e.preventDefault();
-
         const URL = "http://101.101.218.23:30001/timeline-face";
-
-        await axios.post(URL, {"face":value, "id":props.id}
-        ).then((response)=> {
-            console.log(response)
-            setId(response.data.id)
-            setTimeline(response.data.timeline)
-        }).catch((error) => {
-            console.log("Failure :(")
-        })
-
+        const FaceTimeline = () => {
+            return axios({
+                method:"post",
+                url : "http://101.101.218.23:30001/timeline-face",
+                data : {"face": [value], "id":props.id}
+            })
+        }
+        const LaughTimeline = () => {
+            return axios({
+                method: "post",
+                url : "http://118.67.130.53:30003/timeline-laughter",
+                data : {"id" : props.id_laughter}
+            })
+        }
+        await axios.all([FaceTimeline(), LaughTimeline()])
+        .then(axios.spread(function (face_timeline, laugh_timeline) {
+            var tmp = { ...face_timeline.data};
+            tmp["laugh"] = laugh_timeline.data.laugh;
+            setRes(tmp);
+            console.log(res);
+            handleClick(tmp);
+        })).catch((error) => {
+            console.log("Failure :(");
+        });
+        // await axios.post(URL, {"face":value, "id":props.id}
+        // ).then((response)=> {
+        //     console.log(response)
+        //     setId(response.data.id)
+        //     setTimeline(response.data.timeline)
+        // }).catch((error) => {
+        //     console.log("Failure :(")
+        // })
     };
 
     return (
