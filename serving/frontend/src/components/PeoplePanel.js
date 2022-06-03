@@ -1,12 +1,111 @@
-import { Radio, Spin } from 'antd';
+import { Spin, Checkbox, Avatar } from 'antd';
 import axios from 'axios';
 import { useState } from 'react';
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
 
 
+function PeoplePanel(props) {
+
+    const [checkedList, setCheckedList] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
+    const handleClick = (res) => { 
+        navigate("/select-video", { state : res }); 
+    };
+
+    const onChange = (list) => {
+        setCheckedList(list);
+        console.log(list);
+    };
+
+    const render = (people) => {
+        const person = [];
+        for (var prop in people) {
+            person.push(
+                <StyledPerson key={prop}>
+                    <div>
+                        {/* <img src={`data:image/jpeg;base64,${people[prop]}`} 
+                            width="80px"
+                            style={{borderRadius: "35px"}} /> */}
+                        <Avatar size={80} src={`data:image/jpeg;base64,${people[prop]}`} />
+                    </div>
+                    <div style={{paddingLeft: "10px", paddingRight: "10px", textAlign: "center",flexGrow: "1", justifyContent: "center", fontSize: "15px"}}>
+                        <div>{prop}</div>
+                    </div>
+                    <div>
+                        <Checkbox value={prop}></Checkbox>
+                    </div>
+                </StyledPerson>
+            );
+        }
+        return person;
+    };
+
+    const getHighlight = async(res) => {
+        await axios.post(
+            "http://118.67.130.53:30001/timeline-highlight", res // 101.101.218.23
+        ).then((response) => {
+            console.log(response);
+            setLoading(false);
+            handleClick(response.data);
+        });
+    };
+
+    const personSelect = async () => {
+        // e.preventDefault();
+        setLoading(true);
+
+        const FaceTimeline = () => {
+            return axios({
+                method:"post",
+                url : "http://118.67.130.53:30001/timeline-face", // 101.101.218.23
+                data : {"face": checkedList, "id":props.id}
+            });
+        };
+
+        const LaughTimeline = () => {
+            return axios({
+                method: "post",
+                url : "http://118.67.130.53:30003/timeline-laughter",
+                data : {"id" : props.id_laughter}
+            });
+        };
+
+        console.log('checkedList', checkedList);
+        
+        await axios.all([FaceTimeline(), LaughTimeline()])
+        .then(axios.spread(function (face_timeline, laugh_timeline) {
+            var res = { ...face_timeline.data};
+            res["laugh"] = laugh_timeline.data.laugh;
+            getHighlight(res);
+            console.log(res);
+        })).catch((error) => {
+            console.log("Failure :(");
+        });
+    };
+
+    return (
+        <StyledPanel>
+            <Spin spinning={loading} size="large" tip="Making shorts...">
+            <div>
+                <Checkbox.Group style={{width: "100%"}} value={checkedList} onChange={onChange}>
+                    {render(props.people)}
+                </Checkbox.Group>
+            </div>
+            <StyledButton onClick={personSelect}>
+                    인물 선택 완료!
+            </StyledButton>
+            </Spin>
+        </StyledPanel>
+    );
+}
+
+export default PeoplePanel;
+
 const StyledPanel = styled.div`
-    width: 350px;
+    width: 280px;
     padding: 10px;
     background-color: white;
     border-radius: 12px;
@@ -29,115 +128,12 @@ const StyledButton = styled.div`
 
 const StyledPerson = styled.div`
     padding: 10px;
-    margin: 5px;
     display: flex;
     align-items: center;
     font-size: 18px;
     font-weight: bold;
+    border-radius: 10px;
+    &:hover {
+        background-color: #f1f1f1;
+    }
 `;
-
-
-function PeoplePanel(props) {
-    const [value, setValue] = useState('');
-    const [timeline, setTimeline] = useState();
-    const [id, setId] = useState();
-    const [res, setRes] = useState({});
-    const navigate = useNavigate();
-
-    const onChange = (e) => {
-        console.log('Selected Person:', e.target.value);
-        setValue(e.target.value);
-      };
-
-    const rendering = (people) => {
-        console.log(props)
-        const people_imgs = [];
-        for (var prop in people) {
-            people_imgs.push(
-                <StyledPerson key={prop}>
-                    <img src={`data:image/jpeg;base64,${people[prop]}`} 
-                        width="80px"
-                        style={{borderRadius: "35px"}} />
-                    <div style={{flexGrow: "1"}}>
-                        <div>{prop}</div>
-                    </div>
-                </StyledPerson>);
-        }
-        return people_imgs;
-    };
-
-    const handleClick = (tmp) => { navigate("/select-video", { state : tmp }); };
-
-
-    const radioButton = (people) => {
-        const buttons = [];
-
-        for (var prop in people) {
-            buttons.push(
-                <Radio key={prop} value={prop} />
-            );
-        }
-
-        return (
-            <Radio.Group onChange={onChange} value={value} 
-                style={{display: "flex", flexDirection: "column", justifyContent: "space-around"}}>
-                {buttons}
-            </Radio.Group>
-        );
-    };
-
-    const personSelect = async(e) => {
-        e.preventDefault();
-        const URL = "http://101.101.218.23:30001/timeline-face";
-        const FaceTimeline = () => {
-            return axios({
-                method:"post",
-                url : "http://101.101.218.23:30001/timeline-face",
-                data : {"face": [value], "id":props.id}
-            })
-        }
-        const LaughTimeline = () => {
-            return axios({
-                method: "post",
-                url : "http://118.67.130.53:30003/timeline-laughter",
-                data : {"id" : props.id_laughter}
-            })
-        }
-        await axios.all([FaceTimeline(), LaughTimeline()])
-        .then(axios.spread(function (face_timeline, laugh_timeline) {
-            var tmp = { ...face_timeline.data};
-            tmp["laugh"] = laugh_timeline.data.laugh;
-            setRes(tmp);
-            console.log(res);
-            handleClick(tmp);
-        })).catch((error) => {
-            console.log("Failure :(");
-        });
-        // await axios.post(URL, {"face":value, "id":props.id}
-        // ).then((response)=> {
-        //     console.log(response)
-        //     setId(response.data.id)
-        //     setTimeline(response.data.timeline)
-        // }).catch((error) => {
-        //     console.log("Failure :(")
-        // })
-    };
-
-    return (
-        <StyledPanel>
-            <div style={{display: "flex", alignItems: "stretch"}}>
-                <div style={{flexGrow: "1"}}>{rendering(props.people)}</div>
-                <div style={{display: "flex", paddingRight: "10px", alignItems: "stretch"}}>
-                    {radioButton(props.people)}
-                </div>
-            </div>
-                <StyledButton onClick={personSelect}>
-                        인물 선택 완료!
-                </StyledButton>
-
-            
-        </StyledPanel>
-    );
-}
-
-export default PeoplePanel;

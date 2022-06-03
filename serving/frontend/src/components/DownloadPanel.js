@@ -5,6 +5,10 @@ import axios from 'axios';
 
 const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
 
+    // people_img는 이걸로 이용하면 ok!
+    const people_img = [...new Set(response.shorts.map(short => short[0] + '.png'))];
+    console.log(people_img);
+
     const renderPeople = (URL, response) => {
         const people_imgs = [];
         for (var prop in response.people_img) {
@@ -13,6 +17,7 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
                     <div style={{margin: "3px", textAlign: "center"}} key={prop}>
                         <Avatar size={{xxl: 60, xl: 60, lg: 55, md: 50, sm: 50, xs: 50}} 
                             src={<Image src={URL + '/person/' + response.people_img[prop]} />} />
+                            {/* {URL + response.id + '/people/' + response.shorts[index][0] + '.png'} */}
                     </div>
                 </Col>
             );
@@ -21,11 +26,11 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
     };
 
     const handleDownload = () => {
-        // console.log(checkedList);
         if (checkedList.length) {
             checkedList.forEach((filename) => {
                 axios({
-                    url: URL + '/shorts/' + filename,
+                    // url: URL + '/shorts/' + filename,
+                    url: URL + filename,
                     method: "GET",
                     // headers:
                     responseType: "blob"
@@ -35,7 +40,7 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
                     link.href = url;
                     link.setAttribute(
                         "download",
-                        filename
+                        filename.split("/").pop()
                     );
                     document.body.appendChild(link);
                     link.click();
@@ -66,7 +71,7 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
                 </div>
                 <div style={{marginBottom: "20px"}}>
                     <StyledTitle>
-                        선택한 인물 정보
+                        쇼츠 내 인물 정보
                     </StyledTitle>
                     <div style={{padding: "5px", marginTop: "5px", width:"100%", display: "flex"}}>
                         <Row gutter={5}>
