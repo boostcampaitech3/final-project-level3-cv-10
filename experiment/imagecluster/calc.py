@@ -6,9 +6,6 @@ from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from sklearn.decomposition import PCA
 
-#  from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
-# from tensorflow.keras.models import Model
-# import tensorflow.keras as keras
 import torchvision.transforms as transforms
 import torchvision.models as models
 import torch
@@ -20,8 +17,6 @@ data_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-
-pj = os.path.join
 
 
 def get_model():
@@ -54,27 +49,7 @@ def get_model():
             _________________________________________________________________
             predictions (Dense)          (None, 1000)              4097000
     """
-    # base_model = VGG16(weights='imagenet', include_top=True)
-    # base_model = ResNet50(pretrained=True)
-    '''tensorflow - resnet50
-    base_model = ResNet50(pretrained=True)
-    model = keras.Sequential(
-    [
-        Model(inputs=base_model.input, outputs=base_model.get_layer('conv3_block4_out').output), # (None, 28, 28, 512)
-        keras.layers.GlobalAveragePooling2D() # (None, 512)
-    ])
-    '''
 
-    '''pytorch - resnet50
-    base_model = models.resnet50(pretrained=True)
-    model = torch.nn.Sequential(
-        *(list(base_model.children())[:6]), # conv3_x, (28, 28, 512)
-        torch.nn.AdaptiveAvgPool2d((1,1)),
-        torch.nn.Flatten()
-    )
-    '''
-
-    '''pytorch - resnet18'''
     base_model = models.resnet18(pretrained=True)
     model = torch.nn.Sequential(
         *(list(base_model.children())[:6]), # (28, 28, 128)
@@ -103,51 +78,6 @@ def fingerprint(pil_images, model, device):
     # print(ret.shape)
 
     return ret
-
-
-# Cannot use multiprocessing (only tensorflow backend tested, rumor has it that
-# the TF computation graph is not built multiple times, i.e. pickling (what
-# multiprocessing does with _worker) doen't play nice with Keras models which
-# use Tf backend). The call to the parallel version of fingerprints() starts
-# but seems to hang forever. However, Keras with Tensorflow backend runs
-# multi-threaded (model.predict()), so we can sort of live with that. Even
-# though Tensorflow has not the best scaling on the CPU, on low core counts
-# (2-4), it won't matter that much. Also, TF was built to run on GPUs, not
-# scale out multi-core CPUs.
-#
-##def _worker(image, model):
-##    print(fn)
-##    return fn, fingerprint(image, model)
-##
-##
-##def fingerprints(images, model):
-##    _f = functools.partial(_worker, model=model)
-##    with mp.Pool(int(mp.cpu_count()/2)) as pool:
-##        ret = pool.map(_f, images.items())
-##    return dict(ret)
-
-def fingerprints(images, model):
-    """Calculate fingerprints for all image arrays in `images`.
-
-    Parameters
-    ----------
-    images : see :func:`~imagecluster.io.read_images`
-    model : see :func:`fingerprint`
-
-    Returns
-    -------
-    fingerprints : dict
-        {filename1: array([...]),
-         filename2: array([...]),
-         ...
-         }
-    """
-    fingerprints = {}
-    for fn,image in images.items():
-        # print(fn)
-        fingerprints[fn] = fingerprint(image, model)
-    return fingerprints
-
 
 def pca(fingerprints, n_components=0.9, **kwds):
     """PCA of fingerprints for dimensionality reduction.
