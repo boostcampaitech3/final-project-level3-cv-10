@@ -12,7 +12,6 @@ import io
 from ml.face_functions import FaceRecognition
 
 
-
 router = APIRouter(tags=["timeline"])
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -92,7 +91,7 @@ async def get_timeline_face(info: dict):
         timeline = FaceRecognition(video, [image])
         timelines[face] = timeline
     # FE에서 선택한 사람을 받아 face recognition 진행 예정
-    return {"id" : info['id'], "face_timelines": timelines}
+    return {"id" : info['id'], "face": timelines}
 
 
 # TODO: /show-people (face clustering 결과 보여주기)

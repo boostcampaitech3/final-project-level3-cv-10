@@ -3,6 +3,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from api import video, face, highlight
+import os
 
 app = FastAPI()
 
@@ -30,4 +31,6 @@ async def read_root() -> dict:
 
 
 if __name__ == "__main__":
+    print(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'feisty-flow-350613-adcfd8ba2d54.json'))
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.path.join(os.path.dirname(os.path.abspath(__file__)), 'feisty-flow-350613-adcfd8ba2d54.json')
     uvicorn.run("main:app", host="0.0.0.0", port=30001, reload=True)
