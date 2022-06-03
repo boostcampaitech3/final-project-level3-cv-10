@@ -11,6 +11,10 @@ import io
 
 from ml.face_functions import FaceRecognition
 
+from google.cloud import storage
+storage_client = storage.Client()
+bucket_name = 'snowman-bucket'
+bucket = storage_client.bucket(bucket_name)
 
 router = APIRouter(tags=["timeline"])
 
@@ -47,19 +51,23 @@ def from_img_to_bytes(img):
 async def show_people(id: UUID):
     # 사진 넣어주기
     people_img = {}
-    people_img_name = {}
     result_path = os.path.join(FILE_DIR, str(id), 'result')
     dir_list = os.listdir(result_path)
     people_list = [dir for dir in dir_list if dir.startswith('person')]
+
     for person in people_list:
         # 현재는 첫 번째 이미지를 가져옴. 이후에 다른 이미지를 가져오는 알고리즘이 있다면 사용하기
         img_file = os.listdir(os.path.join(str(result_path), str(person)))[0]   # first_image
         img_path = os.path.join(str(result_path), str(person), str(img_file))
+        
+        blob_dir = os.path.join(str(id), 'people', person)
+        blob = bucket.blob(blob_dir)
+        blob.upload_from_filename(img_path)
         img = Image.open(img_path)
-        people_img[person] = from_img_to_bytes(img)
-        people_img_name[person] = str(img_file)
+        people_img[person] = blob_dir
 
-    return {"id": id, "people_img": people_img, "people_img_name" : people_img_name}
+    print(people_img)
+    return {"id": id, "people_img": people_img}
 
 
 @router.post("/timeline-face", description="face recognition을 통해 인물의 timeline을 추출한다.")

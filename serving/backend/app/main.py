@@ -2,6 +2,12 @@ import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+
+import os
+# gcs server
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.path.join(os.path.dirname(os.path.abspath(__file__)), 'feisty-flow-350613-adcfd8ba2d54.json')
+
+
 from api import video, face, highlight
 import os
 
