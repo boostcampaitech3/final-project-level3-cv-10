@@ -1,14 +1,31 @@
 import { useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState, useRef } from 'react';
 import styled from "styled-components";
 import { PeoplePanel } from '../components';
 
 
 function SelectPerson() {
+
     const location = useLocation();
     console.log(location.state);
-    
+
+    const ref = useRef();
+    const [height, setHeight] = useState();
+    const [loaded, setLoaded] = useState(false);
+
+    const getVideoHeight = () => {
+        if (ref.current) {
+            setHeight(ref.current.clientHeight);
+        }
+    };
+    useEffect(() => {
+        getVideoHeight();
+    }, [loaded]);
+
+    useEffect(() => {
+        window.addEventListener("resize", getVideoHeight);
+    }, []);
+
     return (
         <div style={{padding: "20px"}}>
             <div style={{width: "75%", 
@@ -19,13 +36,13 @@ function SelectPerson() {
                 paddingTop: "30px",
                 fontSize: "25px"}}>인물을 선택하세요.</div>
             <StyledArea>
-                <div style={{flexGrow: "1", marginRight: "20px"}}>
-                    <video width="100%" controls>
+                <div style={{flexGrow: "1", marginRight: "25px"}}>
+                    <video ref={ref} width="100%" onLoadedData={() => {setLoaded(true)}} controls>
                         <source src={location.state.video}></source>
                     </video>
                 </div>
                 <div style={{flexGrow: "1"}}>
-                    <PeoplePanel people={location.state.people_img} id={location.state.id} id_laughter={location.state.id_laughter} />
+                    <PeoplePanel height={height} people={location.state.people_img} id={location.state.id} id_laughter={location.state.id_laughter} />
                 </div>
             </StyledArea>
         </div>

@@ -1,8 +1,9 @@
-import { Spin, Checkbox, Avatar, Image } from 'antd';
+import { Spin, Checkbox, Avatar, Image, Modal } from 'antd';
 import axios from 'axios';
 import { useState } from 'react';
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
+
 
 const STORAGE = "https://storage.googleapis.com/snowman-bucket/";
 
@@ -44,7 +45,7 @@ function PeoplePanel(props) {
 
     const getHighlight = async(res) => {
         await axios.post(
-            "http://101.101.218.23:30001/timeline-highlight", res // 101.101.218.23
+            "http://118.67.130.53:30001/timeline-highlight", res // 101.101.218.23
         ).then((response) => {
             console.log(response);
             setLoading(false);
@@ -53,13 +54,11 @@ function PeoplePanel(props) {
     };
 
     const personSelect = async () => {
-        // e.preventDefault();
-        setLoading(true);
 
         const FaceTimeline = () => {
             return axios({
                 method:"post",
-                url : "http://101.101.218.23:30001/timeline-face", // 101.101.218.23
+                url : "http://118.67.130.53:30001/timeline-face", // 101.101.218.23
                 data : {"face": checkedList, "id":props.id}
             });
         };
@@ -72,31 +71,45 @@ function PeoplePanel(props) {
             });
         };
 
-        console.log('checkedList', checkedList);
-        
-        await axios.all([FaceTimeline(), LaughTimeline()])
-        .then(axios.spread(function (face_timeline, laugh_timeline) {
-            var res = { ...face_timeline.data};
-            res["laugh"] = laugh_timeline.data.laugh;
-            res["people_img"] = props.people
-            getHighlight(res);
-            console.log(res);
-        })).catch((error) => {
-            console.log("Failure :(");
-        });
+        if (checkedList.length) {
+            setLoading(true);
+
+            console.log('checkedList', checkedList);
+            
+            await axios.all([FaceTimeline(), LaughTimeline()])
+            .then(axios.spread(function (face_timeline, laugh_timeline) {
+                var res = { ...face_timeline.data};
+                res["laugh"] = laugh_timeline.data.laugh;
+                res["people_img"] = props.people
+                getHighlight(res);
+                console.log(res);
+            })).catch((error) => {
+                console.log("Failure :(");
+            });
+        } else {
+            Modal.error({
+                title: "선택한 인물이 없습니다.",
+                content: "쇼츠를 추출할 인물을 선택해주세요.",
+                centered: true,
+                maskClosable: true,
+            });
+        }
     };
 
     return (
         <StyledPanel>
-            <Spin spinning={loading} size="large" tip="Making shorts...">
-            <div>
-                <Checkbox.Group style={{width: "100%"}} value={checkedList} onChange={onChange}>
-                    {render(props.people)}
-                </Checkbox.Group>
-            </div>
-            <StyledButton onClick={personSelect}>
+            <Spin spinning={loading} 
+                style={{position: "absolute", top: "50%", transform: "translateY(-50%)"}} 
+                size="large" 
+                tip="Making shorts...">
+                <div style={{maxHeight: props.height, overflow: "auto"}}>
+                    <Checkbox.Group style={{width: "100%"}} value={checkedList} onChange={onChange}>
+                        {render(props.people)}
+                    </Checkbox.Group>
+                </div>
+                <StyledButton onClick={personSelect}>
                     인물 선택 완료!
-            </StyledButton>
+                </StyledButton>
             </Spin>
         </StyledPanel>
     );
