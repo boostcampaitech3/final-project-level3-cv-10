@@ -11,7 +11,7 @@ const Video = ({index, shorts, URL, response}) => {
 
     const getTime = (seconds) => {
         let min = parseInt((seconds % 3600)/60);
-        let sec = seconds % 60;
+        let sec = Math.floor(seconds % 60);
         if (sec < 10)
             return `${min}:0${sec}`;
         return `${min}:${sec}`;
@@ -19,7 +19,8 @@ const Video = ({index, shorts, URL, response}) => {
 
     const downloadShorts = (filename) => {
         axios({
-            url: URL + '/shorts/' + filename,
+            // url: URL + '/shorts/' + filename,
+            url: URL + filename,
             method: "GET",
             // headers:
             responseType: "blob"
@@ -29,7 +30,7 @@ const Video = ({index, shorts, URL, response}) => {
             link.href = url;
             link.setAttribute(
                 "download",
-                filename
+                filename.split("/").pop()
             );
             document.body.appendChild(link);
             link.click();
@@ -47,15 +48,18 @@ const Video = ({index, shorts, URL, response}) => {
                 > 
                     {hover ? (
                         <ReactPlayer 
-                            url={URL + '/shorts/' + shorts[index][1]}
+                            // url={URL + '/shorts/' + shorts[index][1]}
+                            url={URL + shorts[index][1] + '#t=1'}
                             muted={true}
                             width="100%"
                             height="auto"
                             playing={true}
+                            loop
                         />
                     ) : (
                         <ReactPlayer 
-                            url={URL + '/shorts/' + shorts[index][1]}
+                            // url={URL + '/shorts/' + shorts[index][1]}
+                            url={URL + shorts[index][1] + '#t=1'}
                             muted={true}
                             width="100%"
                             height="auto"
@@ -65,11 +69,12 @@ const Video = ({index, shorts, URL, response}) => {
                 <VideoMeta>
                     <div>
                         <Avatar size={{xxl: 60, xl: 60, lg: 60, md: 50, sm: 50, xs: 50}} 
-                                src={<Image src={URL + '/person/' + response.people_img[shorts[index][0]]} />} />
+                                // src={<Image src={URL + '/person/' + response.people_img[shorts[index][0]]} />} />
+                                src={<Image src={URL + response.id + '/people/' + response.shorts[index][0] + '.png'} />} />
                     </div>
-                    <div style={{paddingLeft: "15px", paddingRight: "10px", textAlign: "left",flexGrow: "1", justifyContent: "center", fontSize: "15px"}}
+                    <div style={{paddingLeft: "15px", paddingRight: "10px", textAlign: "left", flexGrow: "1", justifyContent: "center", fontSize: "15px"}}
                         onClick={() => setVisible(true)}>
-                        <div style={{fontWeight: "bold"}}>{shorts[index][1]}</div>
+                        <div style={{fontWeight: "bold"}}>{shorts[index][1].split("/").pop().split(".")[0]}</div>
                         <div style={{color: "#555555"}}>{getTime(shorts[index][2])}</div>
                         <div style={{color: "#555555"}}>keywords</div>
                     </div>
@@ -79,7 +84,7 @@ const Video = ({index, shorts, URL, response}) => {
                 </VideoMeta>
             </VideoItem>
             <Modal
-                title={`${shorts[index][1]}`}
+                title={`${shorts[index][1].split("/").pop().split(".")[0]}`}
                 centered
                 visible={visible}
                 cancelText="Close"
@@ -90,7 +95,8 @@ const Video = ({index, shorts, URL, response}) => {
                 onOk={() => {downloadShorts(shorts[index][1])}}
             >
                 <ReactPlayer 
-                    url={URL + '/shorts/' + shorts[index][1]}
+                    // url={URL + '/shorts/' + shorts[index][1]}
+                    url={URL + shorts[index][1]}
                     width="100%"
                     height="auto"
                     playing={true}

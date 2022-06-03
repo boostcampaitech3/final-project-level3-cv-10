@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from "styled-components";
 import { Col, Row, Checkbox } from 'antd';
 import { DownloadPanel } from '../components';
 import { Video } from '../components';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
 
 
 // const STORAGE = "https://storage.googleapis.com/snowman-storage/";
-const STORAGE = "https://storage.googleapis.com/snowman-bucket/";
+const URL = "https://storage.googleapis.com/snowman-bucket/";
 
 const fake_response = {
     "id": "79b364b9-0f28-4d95-a2c5-23883e2cba2e",
@@ -34,53 +33,23 @@ function SelectVideo() {
 
     const location = useLocation();
     console.log(location.state);
-    
-
-    const [fake_response, setFakeResponse] = useState({});
-    const [URL, setURL] = useState('');
-    const [shorts_list, setShortsList] = useState([]);
-    
-    // const URL = STORAGE + fake_response.id;
 
     const [checkedList, setCheckedList] = useState([]);
     const [checkAll, setCheckAll] = useState(false);
 
-    
-
-    // 콘솔 확인용
-    useEffect(() => {
-        console.log(location.state);
-        const getPeople = async () => {
-            const URL = "http://101.101.218.23:30001/timeline-highlight";
-            await axios.post(URL, {"id": location.state.id, "face" : location.state.face, "laugh": location.state.laugh}
-            ).then((response) => {
-                console.log(response);
-                // setFakeResponse(response);
-                // setURL(STORAGE + response.data.id);
-                // setShortsList(fake_response.shorts.map(function (element) {
-                //     return element[1];
-                // }));
-            }).catch((error) => {
-                console.log('Failure :(');
-            });
-        };
-        getPeople();
-    }, []);
-
-    // const shorts_list = fake_response.shorts.map(function (element) {
-    //     return element[1];
-    // });
+    const shorts_list = location.state.shorts.map(function (element) {
+        return element[1];
+    });
 
     const renderCards = (shorts) => {
-        // shorts.preventDefault();
         const cards = [];
         // score 내림차순으로 정렬
         shorts.sort((a, b) => b[3] - a[3]);
 
         for (var i in shorts) {
             cards.push(
-                <Col xxl={8} xl={8} lg={12} md={12} xs={24} key={i}>
-                    <Video index={i} shorts={shorts} URL={URL} response={fake_response} />
+                <Col xxl={8} xl={8} lg={12} md={12} xs={24} key={i} style={{display: "flex"}}>
+                    <Video index={i} shorts={shorts} URL={URL} response={location.state} />
                 </Col>
             );
         };
@@ -89,14 +58,13 @@ function SelectVideo() {
     
     const onChange = (list) => {
         setCheckedList(list);
-        setCheckAll(list.length === fake_response.shorts.length);
+        setCheckAll(list.length === location.state.shorts.length);
     };
 
     const onCheckAllChange = () => {
         setCheckAll(!checkAll);
         setCheckedList(!checkAll ? shorts_list : []);
     };
-
 
     return (
         <div style={{padding: "20px"}}>
@@ -110,17 +78,19 @@ function SelectVideo() {
             >
                 다운로드 할 쇼츠를 선택하세요.
             </div>
-            <StyledArea>
-                <div style={{width: "100%"}}>
-                    <Checkbox.Group style={{width: "100%"}} value={checkedList} onChange={onChange}>
-                        <Row gutter={16}>
-                            {renderCards(fake_response.shorts)}
-                        </Row>
-                    </Checkbox.Group>
-                </div>
-                <DownloadPanel URL={URL} response={fake_response} checkedList={checkedList} 
-                                checkAll={checkAll} onCheckAll={onCheckAllChange}/>
-            </StyledArea>
+            { location.state !== {} && (
+                <StyledArea>
+                    <div style={{width: "100%"}}>
+                        <Checkbox.Group style={{width: "100%"}} value={checkedList} onChange={onChange}>
+                            <Row gutter={16}>
+                                {renderCards(location.state.shorts)}
+                            </Row>
+                        </Checkbox.Group>
+                    </div>
+                    <DownloadPanel URL={URL} response={location.state} checkedList={checkedList} 
+                                    checkAll={checkAll} onCheckAll={onCheckAllChange}/>
+                </StyledArea> 
+            ) }
         </div>
     );
 };

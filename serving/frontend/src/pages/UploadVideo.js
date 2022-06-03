@@ -5,38 +5,6 @@ import { Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 
-const StyledIntro = styled.div`
-  margin: 0 auto;
-  margin-top: 30px;
-  margin-bottom: 50px;
-  font-size: 20px;
-  width: 50%;
-  text-align: left;
-`;
-
-const StyledUpload = styled.div`
-  background-color: #F7F7F7;
-  margin: 0 auto;
-  width: 50%;
-  padding: 25px;
-  border-radius: 10px;
-  border: 2px dashed #E0E0E0;
-`;
-
-const StyledButton = styled.div`
-  margin: 0 auto;
-  margin-top: 50px;
-  width: 50%;
-  padding: 10px;
-  font-size: 18px;
-  color: white;
-  font-weight: bold;
-  background-color: #000000;
-  cursor : pointer;
-  border-radius: 10px;
-`;
-
-
 function UploadVideo() {
 
   const [loading, setLoading] = useState(false);
@@ -68,7 +36,7 @@ function UploadVideo() {
     const getFaceClustering = () => {
       return axios({
         method: "post",
-        url: "http://101.101.218.23:30001/upload-video",
+        url: "http://118.67.130.53:30001/upload-video", //101.101.218.23
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -146,3 +114,34 @@ function UploadVideo() {
 }
 
 export default UploadVideo;
+
+const StyledIntro = styled.div`
+  margin: 0 auto;
+  margin-top: 30px;
+  margin-bottom: 50px;
+  font-size: 20px;
+  width: 50%;
+  text-align: left;
+`;
+
+const StyledUpload = styled.div`
+  background-color: #F7F7F7;
+  margin: 0 auto;
+  width: 50%;
+  padding: 25px;
+  border-radius: 10px;
+  border: 2px dashed #E0E0E0;
+`;
+
+const StyledButton = styled.div`
+  margin: 0 auto;
+  margin-top: 50px;
+  width: 50%;
+  padding: 10px;
+  font-size: 18px;
+  color: white;
+  font-weight: bold;
+  background-color: #000000;
+  cursor : pointer;
+  border-radius: 10px;
+`;
