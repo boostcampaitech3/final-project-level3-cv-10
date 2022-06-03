@@ -8,16 +8,7 @@ import { PeoplePanel } from '../components';
 function SelectPerson() {
     const location = useLocation();
     console.log(location.state);
-
-    // const [people, setPeople] = useState({});
-    // const [id, setId] = useState('');
-
-    // useEffect(() => {
-    //     setPeople(location.state.people_img);
-    //     setId(location.state.id);
-
-    // }, []);
-
+    
     return (
         <div style={{padding: "20px"}}>
             <div style={{width: "75%", 

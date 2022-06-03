@@ -9,6 +9,7 @@ const Video = ({index, shorts, URL, response}) => {
     const [hover, setHover] = useState(false);
     const [visible, setVisible] = useState(false);
 
+
     const getTime = (seconds) => {
         let min = parseInt((seconds % 3600)/60);
         let sec = Math.floor(seconds % 60);
@@ -19,7 +20,6 @@ const Video = ({index, shorts, URL, response}) => {
 
     const downloadShorts = (filename) => {
         axios({
-            // url: URL + '/shorts/' + filename,
             url: URL + filename,
             method: "GET",
             // headers:
@@ -48,7 +48,6 @@ const Video = ({index, shorts, URL, response}) => {
                 > 
                     {hover ? (
                         <ReactPlayer 
-                            // url={URL + '/shorts/' + shorts[index][1]}
                             url={URL + shorts[index][1] + '#t=1'}
                             muted={true}
                             width="100%"
@@ -58,7 +57,6 @@ const Video = ({index, shorts, URL, response}) => {
                         />
                     ) : (
                         <ReactPlayer 
-                            // url={URL + '/shorts/' + shorts[index][1]}
                             url={URL + shorts[index][1] + '#t=1'}
                             muted={true}
                             width="100%"
@@ -69,8 +67,7 @@ const Video = ({index, shorts, URL, response}) => {
                 <VideoMeta>
                     <div>
                         <Avatar size={{xxl: 60, xl: 60, lg: 60, md: 50, sm: 50, xs: 50}} 
-                                // src={<Image src={URL + '/person/' + response.people_img[shorts[index][0]]} />} />
-                                src={<Image src={URL + response.id + '/people/' + response.shorts[index][0] + '.png'} />} />
+                                src={<Image src={URL + response.id + '/people/' + response.shorts[index][0]} />} />
                     </div>
                     <div style={{paddingLeft: "15px", paddingRight: "10px", textAlign: "left", flexGrow: "1", justifyContent: "center", fontSize: "15px"}}
                         onClick={() => setVisible(true)}>
@@ -95,7 +92,6 @@ const Video = ({index, shorts, URL, response}) => {
                 onOk={() => {downloadShorts(shorts[index][1])}}
             >
                 <ReactPlayer 
-                    // url={URL + '/shorts/' + shorts[index][1]}
                     url={URL + shorts[index][1]}
                     width="100%"
                     height="auto"
