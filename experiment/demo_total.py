@@ -22,17 +22,14 @@ shorts_timeline = LaughterDetection(video_path=VIDEO_PATH, wav_path=WAV_PATH, ml
 
 
 # clustering
-extractor = FaceExtractor(VIDEO_PATH,None,CLUSTER_IMG_SAVE_PATH,threshold=0.57,face_cnt=200)
+extractor = FaceExtractor(VIDEO_PATH,None,CLUSTER_IMG_SAVE_PATH,threshold=0.63,face_cnt=250)
 
-fingerprints = extractor.extract_fingerprints()
-clusters = extractor.cluster_fingerprints(fingerprints)
-merged_clusters = extractor.merge_clusters(clusters,fingerprints)
-final_cluster_results = extractor.get_final_dict()
+final_clusters = extractor.cluster_video()
 
 
 # recognition
 target_people = ['person_0', 'person_1']
-target_encoding = [final_cluster_results[person]['repr_encoding'] for person in target_people]
+target_encoding = [final_clusters[person]['repr_encoding'] for person in target_people]
 
 recognizer = FaceRecognizer(VIDEO_PATH, target_encoding=target_encoding)
 timelines, output_frames = recognizer.recognize_faces()
