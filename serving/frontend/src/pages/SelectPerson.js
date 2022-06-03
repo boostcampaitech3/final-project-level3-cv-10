@@ -8,27 +8,7 @@ import { PeoplePanel } from '../components';
 function SelectPerson() {
     const location = useLocation();
     console.log(location.state);
-
-    const [people, setPeople] = useState({});
-    const [filename, setFilename] = useState({});
-
-    useEffect(() => {
-
-        const getPeople = async () => {
-            const URL = "http://118.67.130.53:30001/show-people"; //101.101.218.23
-
-            await axios.get(URL, {params: {"id":  location.state.id}}
-            ).then((response) => {
-                console.log(response);
-                setPeople(response.data.people_img);
-                setFilename(response.data.people_img_name);
-            }).catch((error) => {
-                console.log('Failure :(');
-            });
-        };
-        getPeople();
-    }, []);
-
+    
     return (
         <div style={{padding: "20px"}}>
             <div style={{width: "75%", 
@@ -45,7 +25,7 @@ function SelectPerson() {
                     </video>
                 </div>
                 <div style={{flexGrow: "1"}}>
-                    <PeoplePanel people={people} id={location.state.id} id_laughter={location.state.id_laughter} filename = {filename}/>
+                    <PeoplePanel people={location.state.people_img} id={location.state.id} id_laughter={location.state.id_laughter} />
                 </div>
             </StyledArea>
         </div>

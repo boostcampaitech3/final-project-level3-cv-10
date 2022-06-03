@@ -6,18 +6,17 @@ import axios from 'axios';
 const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
 
     // people_img는 이걸로 이용하면 ok!
-    const people_img = [...new Set(response.shorts.map(short => short[0] + '.png'))];
+    const people_img = [...new Set(response.shorts.map(short => short[0]))];
     console.log(people_img);
 
     const renderPeople = (URL, response) => {
         const people_imgs = [];
-        for (var prop in response.people_img) {
+        for (var prop in people_img) {
             people_imgs.push(
                 <Col xxl={8} xl={8} lg={8} md={8} sm={12} xs={24} key={prop}>
                     <div style={{margin: "3px", textAlign: "center"}} key={prop}>
                         <Avatar size={{xxl: 60, xl: 60, lg: 55, md: 50, sm: 50, xs: 50}} 
-                            src={<Image src={URL + '/person/' + response.people_img[prop]} />} />
-                            {/* {URL + response.id + '/people/' + response.shorts[index][0] + '.png'} */}
+                            src={<Image src={URL + response.id + '/people/' + people_img[prop]} />} />
                     </div>
                 </Col>
             );
@@ -29,7 +28,6 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
         if (checkedList.length) {
             checkedList.forEach((filename) => {
                 axios({
-                    // url: URL + '/shorts/' + filename,
                     url: URL + filename,
                     method: "GET",
                     // headers:

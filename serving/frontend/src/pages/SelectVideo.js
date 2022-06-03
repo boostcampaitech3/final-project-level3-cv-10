@@ -9,25 +9,6 @@ import { useLocation } from 'react-router-dom';
 // const STORAGE = "https://storage.googleapis.com/snowman-storage/";
 const URL = "https://storage.googleapis.com/snowman-bucket/";
 
-const fake_response = {
-    "id": "79b364b9-0f28-4d95-a2c5-23883e2cba2e",
-    // video_url, duration(total length), score
-    "shorts": [["person_00", "shorts_1.mp4", 20, 30],
-                ["person_00", "shorts_6.mp4", 19, 20],
-                ["person_01", "shorts_3.mp4", 32, 25],
-                ["person_01", "shorts_4.mp4", 29, 34],
-                ["person_02", "shorts_2.mp4", 29, 40],
-                ["person_02", "shorts_5.mp4", 64, 39],],
-    // might not be needed (or just list form)
-    "people_img": {
-        "person_00": "person_00.png",
-        "person_01": "person_01.png",
-        "person_02": "person_02.png",
-        "person_03": "person_03.png",
-        "person_04": "person_04.png",
-    }
-};
-
 
 function SelectVideo() {
 

@@ -1,9 +1,10 @@
-import { Spin, Checkbox, Avatar } from 'antd';
+import { Spin, Checkbox, Avatar, Image } from 'antd';
 import axios from 'axios';
 import { useState } from 'react';
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
 
+const STORAGE = "https://storage.googleapis.com/snowman-bucket/";
 
 function PeoplePanel(props) {
 
@@ -12,6 +13,7 @@ function PeoplePanel(props) {
     const navigate = useNavigate();
 
     const handleClick = (res) => { 
+        
         navigate("/select-video", { state : res }); 
     };
 
@@ -26,10 +28,7 @@ function PeoplePanel(props) {
             person.push(
                 <StyledPerson key={prop}>
                     <div>
-                        {/* <img src={`data:image/jpeg;base64,${people[prop]}`} 
-                            width="80px"
-                            style={{borderRadius: "35px"}} /> */}
-                        <Avatar size={80} src={`data:image/jpeg;base64,${people[prop]}`} />
+                        <Avatar size={80} src={<Image src={STORAGE + people[prop]} />}  />
                     </div>
                     <div style={{paddingLeft: "10px", paddingRight: "10px", textAlign: "center",flexGrow: "1", justifyContent: "center", fontSize: "15px"}}>
                         <div>{prop}</div>
@@ -45,7 +44,7 @@ function PeoplePanel(props) {
 
     const getHighlight = async(res) => {
         await axios.post(
-            "http://118.67.130.53:30001/timeline-highlight", res // 101.101.218.23
+            "http://101.101.218.23:30001/timeline-highlight", res // 101.101.218.23
         ).then((response) => {
             console.log(response);
             setLoading(false);
@@ -60,7 +59,7 @@ function PeoplePanel(props) {
         const FaceTimeline = () => {
             return axios({
                 method:"post",
-                url : "http://118.67.130.53:30001/timeline-face", // 101.101.218.23
+                url : "http://101.101.218.23:30001/timeline-face", // 101.101.218.23
                 data : {"face": checkedList, "id":props.id}
             });
         };
@@ -79,6 +78,7 @@ function PeoplePanel(props) {
         .then(axios.spread(function (face_timeline, laugh_timeline) {
             var res = { ...face_timeline.data};
             res["laugh"] = laugh_timeline.data.laugh;
+            res["people_img"] = props.people
             getHighlight(res);
             console.log(res);
         })).catch((error) => {
