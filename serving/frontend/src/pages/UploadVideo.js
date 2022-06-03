@@ -1,19 +1,31 @@
 import React, { useState } from 'react';
 import styled from "styled-components";
 import axios from 'axios';
-import { Spin } from 'antd';
+import { Spin, Upload, message } from 'antd';
+import { InboxOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
+const { Dragger } = Upload;
 
 function UploadVideo() {
-
   const [loading, setLoading] = useState(false);
   const [next, setNext] = useState(false);
   const [video, setVideo] = useState('');
   const [res, setRes] = useState({});
   const [people, setPeople] = useState({});
+  const [file, setFile] = useState();
 
   const navigate = useNavigate();
+
+  const props = {
+    name: 'file',
+    multiple : false,
+    beforeUpload: file  => {
+      setFile(file)
+    	return false;
+    },
+    file,
+  }
 
   const handleClick = () => {
     res["video"] = video
@@ -23,9 +35,8 @@ function UploadVideo() {
     });
   };
 
-  const uploadModule = async (e) => {
-    e.preventDefault();
-    const upload_file = e.target[0].files[0];
+  const uploadModule = async () => {
+    const upload_file = file
     const url = window.URL.createObjectURL(upload_file);
     setVideo(url);
 
@@ -64,8 +75,10 @@ function UploadVideo() {
         setPeople(response.data.people_img)
         setLoading(false);
         setNext(true);
+        message.success(`${file.name} file uploaded successfully.`);
       }).catch((error) => {
         console.log('Failure :(');
+        message.error(`${file.name} file upload failed.`);
       });
     }
 
@@ -92,13 +105,19 @@ function UploadVideo() {
       </StyledIntro>
       <Spin spinning={loading} size="large" tip="Extracting faces...">
         <StyledUpload>
-          <form onSubmit={uploadModule}>
+          <Dragger {...props} >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
             <p style={{fontSize: '18px', color: '#707070', fontWeight: 'bold'}}>원본 영상을 업로드해주세요.</p>
-            <input type="file" accept="video/*" name="file" />
-            <input type="submit" value="SUBMIT" />
-          </form>
+            {/* <input type="file" accept="video/*" name="file" />
+            <input type="submit" value="SUBMIT" /> */}
+          </Dragger>
         </StyledUpload>
       </Spin>
+      {
+        !next && (<StyledButton onClick={uploadModule}>비디오 업로드하기!</StyledButton>)
+      }
       {
         next && (<StyledButton onClick={handleClick}>인물 선택하기!</StyledButton>)
       }
@@ -121,9 +140,6 @@ const StyledUpload = styled.div`
   background-color: #F7F7F7;
   margin: 0 auto;
   width: 50%;
-  padding: 25px;
-  border-radius: 10px;
-  border: 2px dashed #E0E0E0;
 `;
 
 const StyledButton = styled.div`
