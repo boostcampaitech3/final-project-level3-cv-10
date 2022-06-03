@@ -34,17 +34,6 @@ class ItemValue(BaseModel):
     person: str
 
 
-def from_img_to_bytes(img):
-    """
-    pillow image 객체를 bytes로 변환
-    """
-    imgByteArr = io.BytesIO()
-    img.save(imgByteArr, format=img.format)
-    imgByteArr = imgByteArr.getvalue()
-    encoded = base64.b64encode(imgByteArr)
-    decoded = encoded.decode('ascii')
-    return decoded
-
 
 # get으로 바꾸어 사진 보여주기
 @router.get("/show-people", description="face clustering으로 추출한 인물의 사진을 보여줍니다.")
@@ -63,10 +52,9 @@ async def show_people(id: UUID):
         blob_dir = os.path.join(str(id), 'people', person)
         blob = bucket.blob(blob_dir)
         blob.upload_from_filename(img_path)
-        img = Image.open(img_path)
         people_img[person] = blob_dir
 
-    print(people_img)
+    # print(people_img)
     return {"id": id, "people_img": people_img}
 
 
