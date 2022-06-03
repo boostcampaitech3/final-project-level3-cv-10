@@ -59,6 +59,8 @@ def FinalTimeline(laugh_timeline : list, people_timeline : dict, id : str):
     shorts = []
     for target_person in iter(people_timeline.keys()):
         # print(people_timeline[target_person])
+        if people_timeline[target_person] == [[]]:
+            continue
         final_timeline, total_length = make_final_timeline(laugh_timeline, people_timeline[target_person])
         
         target_person_shorts = make_shorts(final_timeline, total_length, id, target_person)
