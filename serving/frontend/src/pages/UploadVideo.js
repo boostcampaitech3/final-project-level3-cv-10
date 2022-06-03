@@ -11,11 +11,13 @@ function UploadVideo() {
   const [next, setNext] = useState(false);
   const [video, setVideo] = useState('');
   const [res, setRes] = useState({});
+  const [people, setPeople] = useState({});
 
   const navigate = useNavigate();
 
   const handleClick = () => {
     res["video"] = video
+    res["people_img"] = people
     navigate("/select-person", {
       state: res
     });
@@ -55,18 +57,34 @@ function UploadVideo() {
       });
     };
 
+    const getPeopleImg = (res) => {
+      return axios.get("http://101.101.218.23:30001/show-people", {params: {"id":  res}}
+      ).then((response) => {
+        console.log(response);
+        setPeople(response.data.people_img)
+        setLoading(false);
+        setNext(true);
+      }).catch((error) => {
+        console.log('Failure :(');
+      });
+    }
+
     await axios.all([getFaceClustering(), getLaughterDetection()])
       .then(axios.spread(function (face_clustering, laughter_detection) {
-          setLoading(false);
-          setNext(true);
           var tmp = { ...face_clustering.data};
           // tmp["laughter_timeline"] = laughter_detection.data.laughter_timeline;
           tmp["id_laughter"] = laughter_detection.data.id_laughter;
           setRes(tmp);
           console.log(tmp);
+          getPeopleImg(tmp["id"])
       })).catch((error) => {
         console.log("Failure :(");
       });
+
+      // const URL = "http://101.101.218.23:30001/show-people";
+
+      
+      
 
 
     // === executing only face clustering ===

@@ -4,11 +4,15 @@ import { useState } from 'react';
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
 
+const STORAGE = "https://storage.googleapis.com/snowman-bucket/";
 
 function PeoplePanel(props) {
 
     const [checkedList, setCheckedList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [value, setValue] = useState('');
+    const [URL, setURL] = useState('');
+    const [res, setRes] = useState({});
     const navigate = useNavigate();
 
     const handleClick = (res) => { 
@@ -26,10 +30,8 @@ function PeoplePanel(props) {
             person.push(
                 <StyledPerson key={prop}>
                     <div>
-                        {/* <img src={`data:image/jpeg;base64,${people[prop]}`} 
-                            width="80px"
-                            style={{borderRadius: "35px"}} /> */}
-                        <Avatar size={80} src={`data:image/jpeg;base64,${people[prop]}`} />
+                        
+                        <Avatar size={80} src={STORAGE + people[prop]}  />
                     </div>
                     <div style={{paddingLeft: "10px", paddingRight: "10px", textAlign: "center",flexGrow: "1", justifyContent: "center", fontSize: "15px"}}>
                         <div>{prop}</div>
