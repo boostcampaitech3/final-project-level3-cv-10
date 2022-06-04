@@ -4,12 +4,18 @@ import pandas as pd
 import argparse
 import os
 import os.path as osp
+import numpy as np
+import cv2
+import shutil
 
-def main(video_path, data_dir, result_dir, log_path, args):
-    if osp.isfile(log_path):
-        df = pd.read_csv(log_path)
+def main(video_path, data_dir, result_dir, log_dir, log_csv_path, args):
+    if not osp.exists(log_dir):
+        os.mkdir(log_dir)
+
+    if osp.isfile(log_csv_path):
+        df = pd.read_csv(log_csv_path)
     else:
-        col_names = ['face_cloth_weights', 'sim_threshold', 'face_cnt', 'min_csize', 'use_merging', 'number of persons', 'DBI']
+        col_names = ['exp_id', 'face_cloth_weights', 'sim_threshold', 'face_cnt', 'min_csize', 'use_merging', 'number of persons', 'DBI']
         df = pd.DataFrame(columns=col_names)
 
     next_idx = len(df)
@@ -28,17 +34,37 @@ def main(video_path, data_dir, result_dir, log_path, args):
     DBI = davies_bouldin_index(extractor.fingerprints)
 
     df.loc[next_idx] = [
+        'exp{}'.format(next_idx),
         extractor.config['face_cloth_weights'],
         extractor.config['sim_threshold'],
         extractor.config['face_cnt'],
         extractor.config['min_csize'],
         extractor.config['use_merging'],
-        len(extractor.final_dict)
+        len(extractor.final_dict),
         DBI
     ]
 
-    df.to_csv(log_path, index=False)
-    print(df)
+    df.to_csv(log_csv_path, index=False)
+
+    imgs = [cluster['repr_img_array'] for cluster in extractor.final_dict.values()]
+    img_width = [img.shape[1] for img in imgs]
+    img_height = [img.shape[0] for img in imgs]
+    max_width = max(img_width)
+    total_height = sum(img_height)
+
+    combined_img = np.ones((total_height, max_width, 3))
+
+    cum_height = 0
+    for img in imgs:
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        combined_img[cum_height: cum_height + img.shape[0], : img.shape[1]] = img
+        cum_height += img.shape[0]
+
+    combined_img = combined_img.astype(np.int32)
+    cluster_img_path = osp.join(log_dir, 'exp{}.png'.format(next_idx))
+    cv2.imwrite(cluster_img_path, combined_img)
+
+    shutil.rmtree(result_dir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -54,6 +80,7 @@ if __name__ == '__main__':
     data_dir = '/opt/ml/input/final-project-level3-cv-10/data/'
     result_dir = '/opt/ml/input/final-project-level3-cv-10/result'
 
-    log_path = '/opt/ml/input/final-project-level3-cv-10/log.csv'
+    log_dir = '/opt/ml/input/final-project-level3-cv-10/experiment/clustering_log'
+    log_csv_path = '/opt/ml/input/final-project-level3-cv-10/experiment/clustering_log/log.csv'
 
-    main(video_path, data_dir, result_dir, log_path, args)
+    main(video_path, data_dir, result_dir, log_dir, log_csv_path, args)
