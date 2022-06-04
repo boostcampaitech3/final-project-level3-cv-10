@@ -173,7 +173,7 @@ def pca(fingerprints, n_components=0.9, **kwds):
 
 
 def cluster(fingerprints, sim=0.5, timestamps=None, alpha=0.3, method='average',
-            metric='euclidean', extra_out=False, print_stats=False, min_csize=2):
+            metric='euclidean', extra_out=False, print_stats=False, min_csize=10):
     """Hierarchical clustering of images based on image fingerprints,
     optionally scaled by time distance (`alpha`).
 

@@ -84,7 +84,7 @@ class FaceClassifier():
             return None
         
 
-    def detect_faces(self, frames, batch_size):
+    def detect_faces(self, frames, batch_size, face_cloth_weights):
         # face locations
         # rgb_frames = [x[:, :, ::-1] for x in frames]
         batch_face_locations = face_recognition.batch_face_locations(frames, number_of_times_to_upsample=0, batch_size=batch_size)
@@ -131,7 +131,7 @@ class FaceClassifier():
             normalized_face_encoding = face_encodings_batch[i] / np.linalg.norm(face_encodings_batch[i])
             normalized_cloth_encoding = cloth_encodings[i] / np.linalg.norm(cloth_encodings[i])
             # concat features [face | cloth]
-            face_weight, cloth_weight = 1, 0.7
+            face_weight, cloth_weight = face_cloth_weights[0], face_cloth_weights[1]
             encoding = np.concatenate((normalized_face_encoding*face_weight, normalized_cloth_encoding*cloth_weight), axis=0) # 128-d + 128-d
 
             filename = str_ms + str(i) + ".png"

@@ -1,0 +1,3 @@
+face_cloth_weights,sim_threshold,face_cnt,min_csize,use_merging,DBI
+"[1.0, 1.0]",0.63,250,10,True,1.2034474479554889
+"[1.0, 1.0]",0.65,350,10,True,1.2569187765787644
