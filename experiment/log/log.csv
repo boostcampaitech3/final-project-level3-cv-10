@@ -1,0 +1,2 @@
+exp_id,face_cloth_weights,sim_threshold,face_cnt,min_csize,use_merging,number of persons,DBI
+exp0,"[1.0, 1.0]",0.63,250,10,True,5,

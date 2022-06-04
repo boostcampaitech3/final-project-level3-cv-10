@@ -32,6 +32,8 @@ def main(video_path, data_dir, result_dir, log_dir, log_csv_path, args):
     final_clusters = extractor.cluster_video()
     extractor.summarize_results()
     DBI = davies_bouldin_index(extractor.fingerprints)
+    print("fingerprints:", extractor.fingerprints)
+    print("DBI:", DBI)
 
     df.loc[next_idx] = [
         'exp{}'.format(next_idx),
@@ -43,6 +45,7 @@ def main(video_path, data_dir, result_dir, log_dir, log_csv_path, args):
         len(extractor.final_dict),
         DBI
     ]
+    print(df)
 
     df.to_csv(log_csv_path, index=False)
 
@@ -68,7 +71,7 @@ def main(video_path, data_dir, result_dir, log_dir, log_csv_path, args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs=2, default=[1.0, 1.0])
+    parser.add_argument('--weights', nargs=2, type=float, default=[1.0, 1.0])
     parser.add_argument('--sim-thresh', type=float, default=0.63)
     parser.add_argument('--face-cnt', type=int, default=250)
     parser.add_argument('--min-csize', type=int, default=10)
@@ -80,7 +83,7 @@ if __name__ == '__main__':
     data_dir = '/opt/ml/input/final-project-level3-cv-10/data/'
     result_dir = '/opt/ml/input/final-project-level3-cv-10/result'
 
-    log_dir = '/opt/ml/input/final-project-level3-cv-10/experiment/clustering_log'
-    log_csv_path = '/opt/ml/input/final-project-level3-cv-10/experiment/clustering_log/log.csv'
+    log_dir = '/opt/ml/input/final-project-level3-cv-10/experiment/log'
+    log_csv_path = '/opt/ml/input/final-project-level3-cv-10/experiment/log/log.csv'
 
     main(video_path, data_dir, result_dir, log_dir, log_csv_path, args)
