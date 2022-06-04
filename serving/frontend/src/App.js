@@ -1,18 +1,15 @@
 /* eslint-disable */
-// import "antd/dist/antd.css";
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Message, NavBar } from './components';
-import { UploadVideo, SelectPerson, SelectVideo, SelectVideoTmp } from './pages';
+import { NavBar } from './components';
+import { UploadVideo, SelectPerson, SelectVideo } from './pages';
 
 
 function App() {
   return (
-    <div className="App">
-      {/* NavBar, Message는 어디에다가 둬야 하지? */}
+    <div className="App" style={{paddingTop: "50px"}}>
       <BrowserRouter>
         <NavBar />
-        {/*<Message />*/}
         <Routes>
           <Route path="/" element={<UploadVideo />} />
           <Route path="/select-person" element={<SelectPerson />} />
