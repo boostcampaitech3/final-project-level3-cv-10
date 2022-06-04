@@ -3,9 +3,8 @@ import axios from 'axios';
 import { useState } from 'react';
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
+import { STORAGE, FACE_API, LAUGHTER_API } from '../config';
 
-
-const STORAGE = "https://storage.googleapis.com/snowman-bucket/";
 
 function PeoplePanel(props) {
 
@@ -45,7 +44,7 @@ function PeoplePanel(props) {
 
     const getHighlight = async(res) => {
         await axios.post(
-            "http://118.67.130.53:30001/timeline-highlight", res // 101.101.218.23
+            `${FACE_API}/timeline-highlight`, res
         ).then((response) => {
             console.log(response);
             setLoading(false);
@@ -58,7 +57,7 @@ function PeoplePanel(props) {
         const FaceTimeline = () => {
             return axios({
                 method:"post",
-                url : "http://118.67.130.53:30001/timeline-face", // 101.101.218.23
+                url : `${FACE_API}/timeline-face`, 
                 data : {"face": checkedList, "id":props.id}
             });
         };
@@ -66,7 +65,7 @@ function PeoplePanel(props) {
         const LaughTimeline = () => {
             return axios({
                 method: "post",
-                url : "http://118.67.130.53:30003/timeline-laughter",
+                url : `${LAUGHTER_API}/timeline-laughter`,
                 data : {"id" : props.id_laughter}
             });
         };

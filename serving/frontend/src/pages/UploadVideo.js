@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Spin, Upload, message } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { FACE_API, LAUGHTER_API } from '../config';
+
 
 const { Dragger } = Upload;
 
@@ -49,7 +51,7 @@ function UploadVideo() {
     const getFaceClustering = () => {
       return axios({
         method: "post",
-        url: "http://101.101.218.23:30001/upload-video", //101.101.218.23
+        url: `${FACE_API}/upload-video`, 
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -60,7 +62,7 @@ function UploadVideo() {
     const getLaughterDetection = () => {
       return axios({
         method: "post",
-        url: "http://118.67.130.53:30003/upload-video",
+        url: `${LAUGHTER_API}/upload-video`,
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -69,7 +71,7 @@ function UploadVideo() {
     };
 
     const getPeopleImg = (res) => {
-      return axios.get("http://101.101.218.23:30001/show-people", {params: {"id":  res}}
+      return axios.get(`${FACE_API}/show-people`, {params: {"id":  res}}
       ).then((response) => {
         console.log(response);
         setPeople(response.data.people_img)
@@ -110,8 +112,6 @@ function UploadVideo() {
               <InboxOutlined />
             </p>
             <p style={{fontSize: '18px', color: '#707070', fontWeight: 'bold'}}>원본 영상을 업로드해주세요.</p>
-            {/* <input type="file" accept="video/*" name="file" />
-            <input type="submit" value="SUBMIT" /> */}
           </Dragger>
         </StyledUpload>
       </Spin>
