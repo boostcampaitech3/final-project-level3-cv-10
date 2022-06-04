@@ -4,10 +4,7 @@ import { Col, Row, Checkbox } from 'antd';
 import { DownloadPanel } from '../components';
 import { Video } from '../components';
 import { useLocation } from 'react-router-dom';
-
-
-// const STORAGE = "https://storage.googleapis.com/snowman-storage/";
-const URL = "https://storage.googleapis.com/snowman-bucket/";
+import { STORAGE } from '../config';
 
 
 function SelectVideo() {
@@ -30,7 +27,7 @@ function SelectVideo() {
         for (var i in shorts) {
             cards.push(
                 <Col xxl={8} xl={8} lg={12} md={12} xs={24} key={i} style={{display: "flex"}}>
-                    <Video index={i} shorts={shorts} URL={URL} response={location.state} />
+                    <Video index={i} shorts={shorts} URL={STORAGE} response={location.state} />
                 </Col>
             );
         };
@@ -68,7 +65,7 @@ function SelectVideo() {
                             </Row>
                         </Checkbox.Group>
                     </div>
-                    <DownloadPanel URL={URL} response={location.state} checkedList={checkedList} 
+                    <DownloadPanel URL={STORAGE} response={location.state} checkedList={checkedList} 
                                     checkAll={checkAll} onCheckAll={onCheckAllChange}/>
                 </StyledArea> 
             ) }
