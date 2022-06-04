@@ -10,19 +10,19 @@ def intra_cluster_dispersion(cluster_dir, result_dir, fingerprints):
     centroid = np.zeros(256)
     encodings = np.empty((0, 256))
     num_points = 0
-    
+
     for img_fname in os.listdir(cluster_dir):
         if not img_fname.endswith('png') and not img_fname.endswith('jpg'):
             continue
-            
+
         cluster_img_path = osp.join(cluster_dir, img_fname)
         result_img_path = osp.join(result_dir, cluster_img_path.split('/')[-1])
-        
+
         fingerprint = fingerprints[result_img_path]
         encodings = np.vstack((encodings, fingerprint))
         centroid += fingerprint
         num_points += 1
-        
+
     centroid /= float(num_points)
     x = encodings - centroid
     S = np.sqrt((1.0 / num_points) * np.sum((encodings - centroid) ** 2))
@@ -48,16 +48,16 @@ def davies_bouldin_index(
             S.append(S_i)
             centroids.append(centroid)
             num_clusters += 1
-            
-        
+
+
     # Calculate Separation Measure (M)
     M = defaultdict(list)
 
     for i in range(num_clusters):
         for j in range(num_clusters):
             M[i].append(separation_measure(centroids[i], centroids[j]))
-            
-            
+
+
     # Calculate Similarity between Clusters
     R = defaultdict(list)
 
@@ -65,14 +65,14 @@ def davies_bouldin_index(
         for j in range(num_clusters):
             sim = (S[i] + S[j]) / M[i][j] if M[i][j] != 0.0 else -1e10
             R[i].append(sim)
-            
+
     R_max = []
     for i in range(num_clusters):
         max_value = max(R[i])
         max_idx = R[i].index(max_value)
         print(max_value, max_idx)
         R_max.append(max(R[i]))
-        
+
     DBI = sum(R_max) / float(num_clusters) # The bigger, the better
-    
+
     return DBI
