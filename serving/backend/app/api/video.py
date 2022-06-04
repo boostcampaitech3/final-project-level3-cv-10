@@ -38,8 +38,7 @@ async def create_video_file(file: UploadFile = File(...)):
     with open(server_path, 'wb') as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    FaceClustering(server_path, id_path, os.path.join(id_path, 'result'))
-    # new_video.result = make_face_timeline(f'./files/{new_video.id}/original.mp4', './model/장기하.png')
+    FaceClustering(server_path, os.path.join(id_path, 'result'))
     return new_video
 
 

@@ -8,6 +8,7 @@ from typing import Optional, Dict, List
 from PIL import Image
 import base64
 import io
+import numpy as np
 
 from ml.face_functions import FaceRecognition
 
@@ -40,14 +41,19 @@ class ItemValue(BaseModel):
 async def show_people(id: UUID):
     # 사진 넣어주기
     people_img = {}
-    result_path = os.path.join(FILE_DIR, str(id), 'result')
-    dir_list = os.listdir(result_path)
-    people_list = [dir for dir in dir_list if dir.startswith('person')]
+    result_path = os.path.join(FILE_DIR, str(id), 'result', 'result.npy')
+    result_data = np.load(result_path, allow_pickle=True).item()
+    
+    # people_img = {}
+    # result_path = os.path.join(FILE_DIR, str(id), 'result')
+    # dir_list = os.listdir(result_path)
+    # people_list = [dir for dir in dir_list if dir.startswith('person')]
 
-    for person in people_list:
+    for person in result_data.keys():
         # 현재는 첫 번째 이미지를 가져옴. 이후에 다른 이미지를 가져오는 알고리즘이 있다면 사용하기
-        img_file = os.listdir(os.path.join(str(result_path), str(person)))[0]   # first_image
-        img_path = os.path.join(str(result_path), str(person), str(img_file))
+        # img_file = os.listdir(os.path.join(str(result_path), str(person)))[0]   # first_image
+        # img_path = os.path.join(str(result_path), str(person), str(img_file))
+        img_path = result_data[person]['repr_img_path']
         
         blob_dir = os.path.join(str(id), 'people', person)
         blob = bucket.blob(blob_dir)
