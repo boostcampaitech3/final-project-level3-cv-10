@@ -80,20 +80,28 @@ async def get_timeline_face(info: dict):
             face_timelines (dict) : 특정 인물들에 대한 timeline을 list형태로 제공 ex) face_timelines : {"person_00" : [[]], "person_03" : [[]]}
     """
     
-    result_path = os.path.join(FILE_DIR, info['id'])
-    video = os.path.join(result_path, 'original.mp4')
+    video_path = os.path.join(FILE_DIR, info['id'])
+    video = os.path.join(video_path, 'original.mp4')
 
-    timelines = {}
+    # recognition
+    target_people = info['face']
+    result_path = os.path.join(FILE_DIR, info['id'], 'result', 'result.npy')
+
+    timelines = FaceRecognition(video, target_people, result_path)
     
-    for face in info['face']:
-        image_file = os.listdir(os.path.join(result_path, 'result', face))[0]
+    save_path = os.path.join(FILE_DIR, info['id'], 'face_timelines.npy')
+    np.save(save_path, timelines)
+    # timelines = {}
+    
+    # for face in info['face']:
+    #     image_file = os.listdir(os.path.join(result_path, 'result', face))[0]
 
-        image = os.path.join(result_path, 'result', face, image_file)
+    #     image = os.path.join(result_path, 'result', face, image_file)
 
-        timeline = FaceRecognition(video, [image])
-        timelines[face] = timeline
+    #     timeline = FaceRecognition(video, [image])
+    #     timelines[face] = timeline
     # FE에서 선택한 사람을 받아 face recognition 진행 예정
-    return {"id" : info['id'], "face": timelines}
+    return {"id" : info['id']}
 
 
 # TODO: /show-people (face clustering 결과 보여주기)

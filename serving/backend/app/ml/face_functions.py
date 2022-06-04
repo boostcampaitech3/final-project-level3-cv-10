@@ -40,20 +40,19 @@ def FaceClustering(video_path: str = "", save_dir:str = ""):
 
 
 ########## Face Recognition ############
-def FaceRecognition(video_path: str="", target_path: str=""):
-    # Load config
-    cfg = load_json('./ml/config.json')
+def FaceRecognition(video_path: str="", target_people: list=[], result_path: str=""):
+
+    result_data = np.load(result_path, allow_pickle=True).item()
+    target_encoding = [result_data[person]['repr_encoding'] for person in target_people]
 
     # Initialize Face Recognizor
-    recognizer = FaceRecognizer(video_path=video_path,
-    target_path=target_path,
-    model_cfg=cfg['face_recognition'])
-
+    recognizer = FaceRecognizer(video_path, target_encoding=target_encoding)
+    
     # save frame numbers from video
-    output_frames = recognizer.recognize_faces()
+    timelines, output_frames = recognizer.recognize_faces()
 
     # make timeline from output frames per each person
-    people_timeline = recognizer.make_people_timeline(output_frames)
+    people_timeline = recognizer.make_people_timeline(timelines, output_frames, target_people)
 
     return people_timeline
 
