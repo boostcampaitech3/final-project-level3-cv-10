@@ -1,6 +1,3 @@
-from .person_db import Person
-from .person_db import Face
-from .person_db import PersonDB
 import face_recognition
 import face_recognition_models
 import numpy as np
@@ -11,9 +8,19 @@ from . import face_alignment_dlib
 import time
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import os.path as osp
+import sys
+import os
+import glob
+import matplotlib.pyplot as plt
+from ml.imagecluster import FaceClassifier, calc, icio, postproc
+from ml.imagecluster import Person, Face, PersonDB
+import random
+import torch
+import matplotlib.pyplot as plt
 
 class FaceExtractor:
-    def __init__(self, video_path, data_dir='data/', save_dir='result', sim_thresh=0.35, skip_seconds=1, use_clipped_video=False, clip_start=0, clip_end=60):
+    def __init__(self, video_path, data_dir='data/', result_dir='result', threshold=0.48, skip_seconds=3, use_clipped_video=True, clip_start=0, clip_end=60,
+                frame_batch_size=16, stop=300, skip=0, face_cnt=250, capture_cnt=60, ratio=1.0): # face_cnt=150 원래
         '''
         :param video_path : input video absolute path
         :param sim_thresh : similarity threshold for comparing two faces
@@ -21,188 +28,340 @@ class FaceExtractor:
         :use_clipped_video : whether the given video_path refers to the original(long) video or clipped(short) video.
                             if original, then automatically clip it to shorter video for faster procesing
         '''
-        self.save_dir = save_dir
-        self.data_dir = data_dir
-        self.person_id = 0
-
+        # Path
         self.video_path = video_path
+        self.data_dir = data_dir
+        self.result_dir = result_dir
+        
+        # Clustering configs
+        self.frame_batch_size = frame_batch_size
+        self.stop = stop
+        self.skip = skip
+        self.face_cnt = face_cnt
+        self.capture_cnt = capture_cnt
+        self.ratio = ratio
+        self.threshold = threshold
+        
+        self.merged_cluster_dir = None
+        self.fingerprints = None
+        self.clusters = None
+        self.final_dict = None
+        self.time_record = dict()
+        
+        if not osp.isdir(self.result_dir):
+            os.makedirs(self.result_dir)
+        
+        # Clip
         if not use_clipped_video:
             self.clip_video(clip_start, clip_end) # save clipped video to data_dir
 
-        print("video_path:", self.video_path)
-
+        # Import video
         self.src = cv2.VideoCapture(self.video_path)
-        self.sim_thresh = sim_thresh
         self.skip_seconds = skip_seconds
         self.skip_frames = int(round(self.src.get(5) * self.skip_seconds))
 
         self.src_info = {
             'frame_w': self.src.get(cv2.CAP_PROP_FRAME_WIDTH),
             'frame_h': self.src.get(cv2.CAP_PROP_FRAME_HEIGHT),
-            'frame_rate': self.src.get(cv2.CAP_PROP_FPS),
+            'fps': self.src.get(cv2.CAP_PROP_FPS),
             'num_frames': self.src.get(cv2.CAP_PROP_FRAME_COUNT),
             'num_seconds': self.src.get(cv2.CAP_PROP_FRAME_COUNT) / self.src.get(cv2.CAP_PROP_FPS)
         }
-
-        self.predictor = dlib.shape_predictor(face_recognition_models.pose_predictor_model_location())
+        
+        # Face Classifier
+        self.fc = FaceClassifier(self.threshold, self.ratio, self.result_dir)
+        
         self._print_src_info()
-        self.pdb = PersonDB()
+        
+        self.seed_everything(79)
 
+        self.initialize_gpu()
 
-    def extract_faces(self):
+    
+    def cluster_video(self):
+        fingerprints = self.extract_fingerprints()
+        clusters = self.cluster_fingerprints(fingerprints)
+        self.merge_clusters(clusters, fingerprints)
+        final_dict = self.get_final_dict()
+        
+        return final_dict
+    
+    
+    def extract_fingerprints(self):
+        print(">>> Extracting fingerprints...")
         total_start_time = time.time()
-        frame_cnt = 0
+        
+        fingerprints = dict()
+        frames = []
+        frame_idx = 0
+        cnt = 0
+        
+        # Scene Detection
+        last_down_frame = None
+        last_org_frame = None
+        
+        start_frame_idx = 0
+        start_down_frame = None
+        start_org_frame = None
+        min_scene_frames = 15
+        timelines = []
+        down_scale_factor = 8
+        transition_threshold = 100
 
         while True:
             success, frame = self.src.read()
             if frame is None:
                 break
-
-            frame_cnt += 1
-            if frame_cnt % self.skip_frames != 0:
+            
+            ###### Preprocessing ######
+            seconds = int(round(frame_idx / self.src_info['fps'], 3))
+            
+            # Maximum seconds to explore
+            if seconds > self.stop > 0:
+                break
+            
+            # Skip first n seconds
+            if seconds < self.skip:
                 continue
-
-            start_time = time.time()
-            faces = self.detect_faces(frame)
-            for face in faces:
-                person = self.compare_with_known_persons(face, self.pdb.persons)
-                if person:
-                    continue
-
-                person = self.compare_with_unknown_faces(face, self.pdb.unknown.faces)
-                if person:
-                    self.pdb.persons.append(person)
-
-            elapsed_time = time.time() - start_time
-
-            s = "\rframe " + str(frame_cnt)
-            #  s += " @ time %.3f" % seconds
-            s += " takes %.3f second" % elapsed_time
-            s += ", %d new faces" % len(faces)
-            s += " -> " + repr(self.pdb)
-            print(s, end="    ")
+                
+            ####### Scene Detection Algorithm ######
+            cur_down_frame = frame[::down_scale_factor, ::down_scale_factor, :]
+            
+            if last_down_frame is None:
+                last_down_frame = cur_down_frame
+                last_org_frame = frame
+                start_frame_idx = frame_idx
+                start_down_frame = cur_down_frame
+                start_org_frame = frame
+                frame_idx += 1
+                continue
+                
+            num_pixels = cur_down_frame.shape[0] * cur_down_frame.shape[1]
+            rgb_distance = np.abs(cur_down_frame - last_down_frame) / float(num_pixels)
+            rgb_distance = rgb_distance.sum() / 3.0
+            
+            if rgb_distance > transition_threshold and frame_idx - start_frame_idx > min_scene_frames:
+                # print("({}~{})".format(start_frame_idx, frame_idx-1))
+                
+                start_org_frame = cv2.resize(start_org_frame, None, fx=0.8, fy=0.8)
+                last_org_frame = cv2.resize(last_org_frame, None, fx=0.8, fy=0.8)
+                
+                frames.append(start_org_frame)
+                frames.append(last_org_frame)
+                
+                # cv2.imwrite("scene_detection_imgs/{}.png".format(start_frame_idx), start_org_frame)
+                # cv2.imwrite("scene_detection_imgs/{}.png".format(frame_idx - 1), last_org_frame)
+                
+                start_frame_idx = frame_idx
+                start_down_frame = cur_down_frame
+                start_org_frame = frame
+            
+            last_down_frame = cur_down_frame
+            last_org_frame = frame
+            
+            if len(frames) < self.frame_batch_size:
+                frame_idx += 1
+                continue
+           
+            ##### Face Detection #####
+            # # Explore every n frame
+            # if frame_cnt % self.skip_frames == 0:
+            #     if frame.shape[0] > 1000:
+            #         frame = cv2.resize(frame, None, fx=0.6, fy=0.6)
+            #     frames.append(frame)
+                
+            if len(frames) == self.frame_batch_size:
+                frame_fingerprints = self.fc.detect_faces(frames, self.frame_batch_size)
+                if frame_fingerprints:
+                    fingerprints.update(frame_fingerprints)
+                    # print("Face images: ", len(fingerprints))
+                    
+                frames = []
+                
+            if len(fingerprints) >= self.face_cnt:
+                break
+                
+            frame_idx += 1
 
         self.src.release()
-        self.pdb.save_db(self.save_dir)
-        self.pdb.print_persons()
-
         total_end_time = time.time()
+        self.time_record['Face Extraction'] = total_end_time - total_start_time
+        # print("Captured frames: ", frame_idx)
+        self.fingerprints = fingerprints
+        
+        return fingerprints
+    
+    def cluster_fingerprints(self, fingerprints):
+        start_time = time.time()
+        print(">>> Clustering fingerprints...")
+        clusters = calc.cluster(fingerprints, sim=self.threshold, method='single', min_csize=3)
+        postproc.make_links(clusters, osp.join(self.result_dir, 'imagecluster/clusters'))
+        # images = icio.read_images(self.result_dir, size=(224, 224))
+        # fig, ax = postproc.plot_clusters(clusters, images)
+        # fig.savefig(os.path.join(self.result_dir, 'imagecluster/_cluster.png'))
+        # postproc.plt.show()
+        self.clusters = clusters
+        
+        end_time = time.time()
+        self.time_record['Clustering Fingerprints'] = end_time - start_time
+        
+        return clusters
+    
+    
+    def merge_clusters(self, cluster_dict, fingerprints, iteration=1, FACE_THRESHOLD_HARD=0.18, CLOTH_THRESHOLD_HARD=0.12, FACE_THRESHOLD_SOFT=0.19, CLOTH_THRESHOLD_SOFT=0.15) -> dict:
+        '''
+        parameters:
+            clusters: calc.cluster() 의 return 값 (dict / key=cluster_size(int), value=clusters(2d-array))
+            fingerprints: feature vector dictionary (key=filepath, value=feature vector)
+            iteration: merge 반복 횟수
+            FACE_THRESHOLD_HARD
+            CLOTH_THRESHOLD_HARD
+            FACE_THRESHOLD_SOFT
+            CLOTH_THRESHOLD_SOFT
+        return:
+            merged_clusters: calc.cluster() 의 return 값과 동일한 형태 (dict / key=cluster_size(int), value=clusters(2d-array))
+        '''
 
-        print("Total Time Taken: {} seconds".format(total_end_time - total_start_time))
+        print(">>> Merging clusters...")
+        start_time = time.time()
+        
+        for _ in range(iteration):
+            cluster_list = sorted([[key, value] for key, value in cluster_dict.items()], key=lambda x:x[0], reverse=True)
+            cluster_fingerprints = [] # [(face, cloth), ...]
+            cluster_cnt = 0
 
-        return self.pdb
+            for cluster_with_num in cluster_list:
+                num, clusters = cluster_with_num
+                for idx, cluster in enumerate(clusters):
+                    cluster_face_fingerprint = np.zeros((128,))
+                    cluster_cloth_fingerprint = np.zeros((128,))
+                    i = 0
+                    for person in cluster:
+                        encoding = fingerprints[person]
+                        face, cloth = encoding[:128], encoding[128:]
+                        cluster_face_fingerprint += face
+                        cluster_cloth_fingerprint += cloth
+                        i += 1
+                    assert i > 0, 'cluster is empty!'
+                    cluster_face_fingerprint /= i
+                    cluster_cloth_fingerprint /= i
 
+                    cluster_fingerprints.append([(num, idx), (cluster_face_fingerprint, cluster_cloth_fingerprint)])
+                    cluster_cnt += 1
 
+            merged = []
+            merged_clusters = dict()
 
-    def get_face_image(self, frame, box):
-        img_height, img_width = frame.shape[:2]
-        (box_top, box_right, box_bottom, box_left) = box
-        box_width = box_right - box_left
-        box_height = box_bottom - box_top
-        crop_top = max(box_top - box_height, 0)
-        pad_top = -min(box_top - box_height, 0)
-        crop_bottom = min(box_bottom + box_height, img_height - 1)
-        pad_bottom = max(box_bottom + box_height - img_height, 0)
-        crop_left = max(box_left - box_width, 0)
-        pad_left = -min(box_left - box_width, 0)
-        crop_right = min(box_right + box_width, img_width - 1)
-        pad_right = max(box_right + box_width - img_width, 0)
-        face_image = frame[crop_top:crop_bottom, crop_left:crop_right]
-        if (pad_top == 0 and pad_bottom == 0):
-            if (pad_left == 0 and pad_right == 0):
-                return face_image
-        padded = cv2.copyMakeBorder(face_image, pad_top, pad_bottom,
-                                    pad_left, pad_right, cv2.BORDER_CONSTANT)
-        return padded
+            for i in range(cluster_cnt):
+                if cluster_fingerprints[i][0] in merged:
+                    continue
+                big_num, big_idx = cluster_fingerprints[i][0]
+                person_list = cluster_dict[big_num][big_idx]
+                merged_num = big_num
+                for j in range(i+1, cluster_cnt):
+                    cluster_face_norm = round(np.linalg.norm(cluster_fingerprints[i][1][0] - cluster_fingerprints[j][1][0]),3)
+                    cluster_cloth_norm = round(np.linalg.norm(cluster_fingerprints[i][1][1] - cluster_fingerprints[j][1][1]),3)
+                    if cluster_face_norm < FACE_THRESHOLD_HARD or cluster_cloth_norm < CLOTH_THRESHOLD_HARD or \
+                        (cluster_face_norm < FACE_THRESHOLD_SOFT and cluster_cloth_norm < CLOTH_THRESHOLD_SOFT):
+                        small_num, small_idx = cluster_fingerprints[j][0]
+                        merged_num += small_num
+                        person_list += cluster_dict[small_num][small_idx]
+                        merged.append(cluster_fingerprints[j][0])
 
+                merged_clusters[merged_num] = merged_clusters.get(merged_num, [])
+                merged_clusters[merged_num].append(person_list)
 
-    # return list of dlib.rectangle
-    def locate_faces(self, frame):
-        #start_time = time.time()
-        rgb = frame[:, :, ::-1]
-        boxes = face_recognition.face_locations(rgb)
-        #elapsed_time = time.time() - start_time
-        #print("locate_faces takes %.3f seconds" % elapsed_time)
-        return boxes
+            cluster_dict = merged_clusters
+        self.merged_cluster_dir = os.path.join(self.result_dir, 'imagecluster/merged_clusters')
+        postproc.make_links(merged_clusters, self.merged_cluster_dir)
 
+        end_time = time.time()
+        self.time_record['Merging Clusters'] = end_time - start_time
+        return merged_clusters
+    
+    def get_final_dict(self):
+        print(">>> Calculating average encoding and representative encoding...")
+        start_time = time.time()
+        
+        final_selections = dict()
+        cnt = 0
 
-    def detect_faces(self, frame):
-        boxes = self.locate_faces(frame)
-        if len(boxes) == 0:
-            return []
+        for sup_cluster in os.listdir(self.merged_cluster_dir):
+            for cluster_folder in os.listdir(osp.join(self.merged_cluster_dir, sup_cluster)):
+                
+                # cluster folder
+                cluster_dir = osp.join(self.merged_cluster_dir, sup_cluster, cluster_folder)
 
-        # faces found
-        faces = []
-        now = datetime.now()
-        str_ms = now.strftime('%Y%m%d_%H%M%S.%f')[:-3] + '-'
+                # representative cluster & result path
+                repr_cluster_img_path, avg_encoding = self.pick_one(cluster_dir)
+                repr_result_img_path = osp.join(self.result_dir, repr_cluster_img_path.split('/')[-1])
 
-        for i, box in enumerate(boxes):
-            # extract face image from frame
-            face_image = self.get_face_image(frame, box)
+                # repr_img, repr_encoding, avg_encoding
+                repr_img = cv2.imread(repr_result_img_path)
+                repr_img = cv2.cvtColor(repr_img, cv2.COLOR_BGR2RGB)
+                repr_encoding = self.fingerprints[repr_result_img_path]
 
-            # get aligned image
-            aligned_image = face_alignment_dlib.get_aligned_face(self.predictor, face_image)
+                final_selections[f'person_{cnt}'] = {
+                    'repr_img_path': repr_result_img_path,
+                    'repr_img_array': repr_img,
+                    'repr_encoding': repr_encoding,
+                    'avg_encoding': avg_encoding
+                }
 
-            # compute the encoding
-            height, width = aligned_image.shape[:2]
-            x = int(width / 3)
-            y = int(height / 3)
-            box_of_face = (y, x*2, y*2, x)
-            encoding = face_recognition.face_encodings(aligned_image,
-                                                       [box_of_face])[0]
+                cnt += 1
+                
+        end_time = time.time()
+        self.time_record['Average Encoding & Pick Representative'] = end_time - start_time
+        
+        self.final_dict = final_selections
+        return final_selections
 
-            face = Face(str_ms + str(i) + ".png", face_image, encoding)
-            face.location = box
-            # cv2.imwrite(str_ms + str(i) + ".r.png", aligned_image)
-            faces.append(face)
-        return faces
+    def detect_blur_fft(self, image, size=60):
+        # grab the dimensions of the image and use the dimensions to
+        # derive the center (x, y)-coordinates
+        (h, w) = image.shape
+        (cX, cY) = (int(w / 2.0), int(h / 2.0))
+        fft = np.fft.fft2(image)
+        fftShift = np.fft.fftshift(fft)
+        fftShift[cY - size:cY + size, cX - size:cX + size] = 0
+        fftShift = np.fft.ifftshift(fftShift)
+        recon = np.fft.ifft2(fftShift)
+        # compute the magnitude spectrum of the reconstructed image,
+        # then compute the mean of the magnitude values
 
+        magnitude = 20 * np.log(np.abs(recon))
+        mean = np.mean(magnitude)
+        # the image will be considered "blurry" if the mean value of the
+        # magnitudes is less than the threshold value
+        return (mean)
 
-    def compare_with_known_persons(self, face, persons):
-        if len(persons) == 0:
-            return None
+    def pick_one(self, FILE_PATH):
+        mean = []
+        avg_encoding = np.zeros(256)
+        img_cnt = 0
 
-        # see if the face is a match for the faces of known person
-        encodings = [person.encoding for person in persons]
-        distances = face_recognition.face_distance(encodings, face.encoding)
-        index = np.argmin(distances)
-        min_value = distances[index]
-        if min_value < self.sim_thresh:
-            # face of known person
-            persons[index].add_face(face)
-            # re-calculate encoding
-            persons[index].calculate_average_encoding()
-            face.name = persons[index].name
-            return persons[index]
+        for i, imagePath in enumerate(os.listdir(FILE_PATH)):
+            if not imagePath.endswith('.png') and not imagePath.endswith('.jpg'):
+                continue
 
+            # Calculate Average Encoding
+            avg_encoding += self.fingerprints[osp.join(self.result_dir, imagePath)]
 
-    def compare_with_unknown_faces(self, face, unknown_faces):
-        if len(unknown_faces) == 0:
-            # this is the first face
-            unknown_faces.append(face)
-            face.name = "unknown"
-            return
+            # Pick a representative
+            orig = cv2.imread(os.path.join(FILE_PATH,imagePath))
+            # orig = imutils.resize(orig, width=500)
+            gray = cv2.cvtColor(orig, cv2.COLOR_BGR2GRAY)
 
-        encodings = [face.encoding for face in unknown_faces]
-        distances = face_recognition.face_distance(encodings, face.encoding)
-        index = np.argmin(distances)
-        min_value = distances[index]
-        if min_value < self.sim_thresh:
-            # two faces are similar - create new person with two faces
-            person = Person(person_id=self.person_id) #
-            self.person_id += 1 #
-            newly_known_face = unknown_faces.pop(index)
-            person.add_face(newly_known_face)
-            person.add_face(face)
-            person.calculate_average_encoding()
-            face.name = person.name
-            newly_known_face.name = person.name
-            return person
-        else:
-            # unknown face
-            unknown_faces.append(face)
-            face.name = "unknown"
-            return None
+            # apply our blur detector using the FFT
+            mean.append( [imagePath, round(self.detect_blur_fft(gray, size=60),3 )])
+            img_cnt += 1
+
+        avg_encoding /= float(img_cnt)
+
+        #sort in descending order by sharpness 
+        mean = sorted(mean, key = lambda x: x[1], reverse = True)
+        #return FILE_PATH + FILE_NAME
+        return os.path.join(FILE_PATH,mean[0][0]), avg_encoding
 
 
     def clip_video(self, start, end):
@@ -221,21 +380,52 @@ class FaceExtractor:
         print("-"*80)
         print("[Source Video File]: {}".format(self.video_path))
         print("[Frame resolution H x W]: ({} x {})".format(self.src_info['frame_h'], self.src_info['frame_w']))
-        print("[Frame rate]: {}".format(int(self.src_info['frame_rate'])))
+        print("[FPS]: {}".format(round(self.src_info['fps'],2)))
         print("[Total number of frames]: {}".format(int(self.src_info['num_frames'])))
         print("[Total number of seconds]: {}".format(int(self.src_info['num_seconds'])))
-        print("[Similiarty Threshold]: {}".format(self.sim_thresh))
-        print("Process every {} secs ({} frames)".format(self.skip_seconds, self.skip_frames))
+        print("[Similiarty Threshold]: {}".format(self.threshold))
+        print("[Number of target faces for clustering]: {}".format(self.face_cnt))
         print("-"*80)
 
 
     def summarize_results(self):
+        print("-"*32, "Result Summary", "-"*32)
+        total_time = 0.
+        for key, val in self.time_record.items():
+            print("[{}]: {} seconds".format(key, round(val, 3)))
+            total_time += val
+        print("[Total time]: {} seconds".format(round(total_time, 3)))
+        print("Total number of detected persons: {}".format(len(self.final_dict)))
         print("-"*80)
-        print("Saved directory: {}".format(self.save_dir))
-        print("Access persons: pdb.persons (list)")
-        print("Access a person's name: p.name")
-        print("Access a person's average encoding: p.encoding")
-        print("Access a person's faces: p.faces")
-        for person in self.pdb.persons:
-            print("[{}]: {} samples".format(person.name, len(person.faces)))
-        print("-"*80)
+        
+        
+    def seed_everything(self, seed: int = 42):
+        random.seed(seed)
+        np.random.seed(seed)
+        os.environ["PYTHONHASHSEED"] = str(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)  # type: ignore
+        torch.backends.cudnn.deterministic = True  # type: ignore
+        torch.backends.cudnn.benchmark = False  # type: ignore
+        
+        
+    def initialize_gpu(self):
+        test = np.array(np.random.rand(10,10,3),dtype='uint8')
+        face_recognition.face_locations(test,model='cnn')
+            
+    
+    def plot_clusters(self):
+        num_persons = len(self.final_dict)
+        h, w = num_persons, 1
+        fig = plt.figure(figsize=(30, 70))
+
+        idx = 0
+        for person_id, info in self.final_dict.items():
+            img = info['repr_img_array']
+            fig.add_subplot(h, w, idx+1)
+            plt.imshow(img)
+            plt.axis('off')
+            plt.title(person_id, color='red', fontsize=20)
+            idx += 1
+
+

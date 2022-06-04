@@ -8,28 +8,35 @@ from ml.final_shorts.make_shorts import make_shorts
 
 from ml.utils import load_json
 
+import numpy as np
+import os
+
 '''
 This module is config-based: Modify config.json for different experiments
 '''
 
 ########## Face Clustering ############
-def FaceClustering(video_path: str = "", data_dir:str = "", save_dir:str = ""):
+def FaceClustering(video_path: str = "", save_dir:str = ""):
     # Load config
-    cfg = load_json('./ml/config.json')
+    # cfg = load_json('./ml/config.json')
 
     # Initialize Face Extractor
     extractor = FaceExtractor(
         video_path=video_path,
-        data_dir=data_dir,
-        save_dir=save_dir,
-        **cfg['face_extractor']
+        data_dir=None,
+        result_dir=save_dir,
+        threshold=0.63,
+        face_cnt=250
     )
 
     # Extract Faces
-    pdb = extractor.extract_faces()
+    final_clusters = extractor.cluster_video()
+
+    np.save(os.path.join(save_dir, 'result.npy'), final_clusters)
 
     # Show results
     extractor.summarize_results()
+
 
 
 ########## Face Recognition ############

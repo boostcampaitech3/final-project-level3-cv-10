@@ -13,10 +13,10 @@ import pickle
 class Face():
     key = "face_encoding"
 
-    def __init__(self, filename, image, face_encoding):
+    def __init__(self, filename, image, encoding):
         self.filename = filename
         self.image = image
-        self.encoding = face_encoding
+        self.encoding = encoding
 
     def save(self, base_dir):
         # save image
@@ -26,7 +26,7 @@ class Face():
     @classmethod
     def get_encoding(cls, image):
         rgb = image[:, :, ::-1]
-        boxes = face_recognition.face_locations(rgb, model="hog")
+        boxes = face_recognition.face_locations(rgb, model="cnn")
         if not boxes:
             height, width, channels = image.shape
             top = int(height/3)
@@ -40,12 +40,12 @@ class Face():
 
 
 class Person():
-    # _last_id = 0
+    _last_id = 0
 
-    def __init__(self, name=None, person_id=None):
+    def __init__(self, name=None):
         if name is None:
-            # Person._last_id += 1
-            self.name = "person_%02d" % person_id
+            Person._last_id += 1
+            self.name = "person_%02d" % Person._last_id
         else:
             self.name = name
             if name.startswith("person_") and name[7:].isdigit():
@@ -204,6 +204,3 @@ class PersonDB():
             s += " ] %.3f, %.3f, %.3f" % (mn, av, mx)
             s += ", %d faces" % len(person.faces)
             print(s)
-
-
-
