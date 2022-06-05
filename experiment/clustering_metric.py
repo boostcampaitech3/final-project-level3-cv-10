@@ -34,19 +34,43 @@ def separation_measure(centroid1, centroid2):
 
 def davies_bouldin_index(
     fingerprints,
-    merged_cluster_dir = '/opt/ml/input/final-project-level3-cv-10/result/imagecluster/merged_clusters',
+    final_cluster_dir = '/opt/ml/input/final-project-level3-cv-10/result/imagecluster/merged_clusters',
     result_dir = '/opt/ml/input/final-project-level3-cv-10/result',
 ):
     S = []
     centroids = []
     num_clusters = 0
-    for sup_dir in os.listdir(merged_cluster_dir):
-        for cluster_dir in os.listdir(osp.join(merged_cluster_dir, sup_dir)):
-            cluster_dir = osp.join(merged_cluster_dir, sup_dir, cluster_dir)
-            print(cluster_dir)
+    for sup_dir in os.listdir(final_cluster_dir):
+        for cluster_dir in os.listdir(osp.join(final_cluster_dir, sup_dir)):
+            cluster_dir = osp.join(final_cluster_dir, sup_dir, cluster_dir)
             S_i, centroid = intra_cluster_dispersion(cluster_dir, result_dir, fingerprints)
             S.append(S_i)
             centroids.append(centroid)
             num_clusters += 1
 
 
+    # Calculate Separation Measure (M)
+    M = defaultdict(list)
+
+    for i in range(num_clusters):
+        for j in range(num_clusters):
+            M[i].append(separation_measure(centroids[i], centroids[j]))
+
+
+    # Calculate Similarity between Clusters
+    R = defaultdict(list)
+
+    for i in range(num_clusters):
+        for j in range(num_clusters):
+            sim = (S[i] + S[j]) / M[i][j] if M[i][j] != 0.0 else -1e10
+            R[i].append(sim)
+
+    R_max = []
+    for i in range(num_clusters):
+        max_value = max(R[i])
+        max_idx = R[i].index(max_value)
+        R_max.append(max(R[i]))
+
+    DBI = sum(R_max) / float(num_clusters) # The bigger, the better
+
+    return DBI

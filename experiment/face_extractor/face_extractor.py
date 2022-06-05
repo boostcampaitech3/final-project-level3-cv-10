@@ -45,6 +45,7 @@ class FaceExtractor:
         self.min_csize = min_csize
         self.use_merging = use_merging
 
+        self.cluster_dir = osp.join(self.result_dir, 'imagecluster/clusters')
         self.merged_cluster_dir = None
         self.fingerprints = None
         self.clusters = None
@@ -64,11 +65,11 @@ class FaceExtractor:
         self.skip_frames = int(round(self.src.get(5) * self.skip_seconds))
 
         self.src_info = {
-            'frame_w': self.src.get(cv2.CAP_PROP_FRAME_WIDTH),
-            'frame_h': self.src.get(cv2.CAP_PROP_FRAME_HEIGHT),
-            'fps': self.src.get(cv2.CAP_PROP_FPS),
+            'frame_w': int(self.src.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            'frame_h': int(self.src.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+            'fps': round(self.src.get(cv2.CAP_PROP_FPS), 2),
             'num_frames': self.src.get(cv2.CAP_PROP_FRAME_COUNT),
-            'num_seconds': self.src.get(cv2.CAP_PROP_FRAME_COUNT) / self.src.get(cv2.CAP_PROP_FPS)
+            'num_seconds': int(self.src.get(cv2.CAP_PROP_FRAME_COUNT) / self.src.get(cv2.CAP_PROP_FPS))
         }
 
         # Face Classifier
@@ -289,17 +290,18 @@ class FaceExtractor:
         print(">>> Calculating average encoding and representative encoding...")
         start_time = time.time()
 
+        final_cluster_dir = self.merged_cluster_dir if self.use_merging else self.cluster_dir
         final_selections = dict()
         cnt = 0
 
-        for sup_cluster in os.listdir(self.merged_cluster_dir):
-            for cluster_folder in os.listdir(osp.join(self.merged_cluster_dir, sup_cluster)):
+        for sup_cluster in os.listdir(final_cluster_dir):
+            for cluster_folder in os.listdir(osp.join(final_cluster_dir, sup_cluster)):
 
                 # cluster folder
-                cluster_dir = osp.join(self.merged_cluster_dir, sup_cluster, cluster_folder)
+                cluster_dir = osp.join(final_cluster_dir, sup_cluster, cluster_folder)
 
                 # representative cluster & result path
-                repr_cluster_img_path, avg_encoding = self.pick_one(cluster_dir)
+                repr_cluster_img_path, avg_encoding, img_cnt = self.pick_one(cluster_dir)
                 repr_result_img_path = osp.join(self.result_dir, repr_cluster_img_path.split('/')[-1])
 
                 # repr_img, repr_encoding, avg_encoding
@@ -309,6 +311,7 @@ class FaceExtractor:
 
                 final_selections[f'person_{cnt}'] = {
                     'repr_img_path': repr_result_img_path,
+                    'num_samples': img_cnt,
                     'repr_img_array': repr_img,
                     'repr_encoding': repr_encoding,
                     'avg_encoding': avg_encoding
@@ -367,7 +370,7 @@ class FaceExtractor:
         #sort in descending order by sharpness
         mean = sorted(mean, key = lambda x: x[1], reverse = True)
         #return FILE_PATH + FILE_NAME
-        return os.path.join(FILE_PATH,mean[0][0]), avg_encoding
+        return os.path.join(FILE_PATH,mean[0][0]), avg_encoding, img_cnt
 
 
     def clip_video(self, start, end):
@@ -386,7 +389,7 @@ class FaceExtractor:
         print("-"*80)
         print("[Source Video File]: {}".format(self.video_path))
         print("[Frame resolution H x W]: ({} x {})".format(self.src_info['frame_h'], self.src_info['frame_w']))
-        print("[FPS]: {}".format(int(self.src_info['fps'])))
+        print("[FPS]: {}".format(self.src_info['fps']))
         print("[Total number of frames]: {}".format(int(self.src_info['num_frames'])))
         print("[Total number of seconds]: {}".format(int(self.src_info['num_seconds'])))
         print("Process every {} secs ({} frames)".format(self.skip_seconds, self.skip_frames))
@@ -417,6 +420,7 @@ class FaceExtractor:
         print("[Total time]: {} seconds".format(round(total_time, 3)))
         print("Total number of detected persons: {}".format(len(self.final_dict)))
         print("-"*80)
+        self.total_time = round(total_time, 3)
 
 
     def seed_everything(self, seed: int = 42):

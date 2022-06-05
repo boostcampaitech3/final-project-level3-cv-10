@@ -15,10 +15,11 @@ def main(video_path, data_dir, result_dir, log_dir, log_csv_path, args):
     if osp.isfile(log_csv_path):
         df = pd.read_csv(log_csv_path)
     else:
-        col_names = ['exp_id', 'face_cloth_weights', 'sim_threshold', 'face_cnt', 'min_csize', 'use_merging', 'number of persons', 'DBI']
+        col_names = ['exp_id', 'video file', 'resolution', 'FPS', 'length(s)', 'sim_threshold', 'face_cnt', 'min_csize', 'face_cloth_weights', 'use_merging', 'number of persons', 'total time(s)', 'DBI']
         df = pd.DataFrame(columns=col_names)
 
     next_idx = len(df)
+    args.use_merging = True if args.use_merging == 'true' else False
 
     extractor = FaceExtractor(
         video_path, data_dir, result_dir,
@@ -31,40 +32,46 @@ def main(video_path, data_dir, result_dir, log_dir, log_csv_path, args):
 
     final_clusters = extractor.cluster_video()
     extractor.summarize_results()
-    DBI = davies_bouldin_index(extractor.fingerprints)
-    print("fingerprints:", extractor.fingerprints)
-    print("DBI:", DBI)
+    dbi_cluster_dir = extractor.merged_cluster_dir if extractor.use_merging else extractor.cluster_dir
+    DBI = davies_bouldin_index(extractor.fingerprints, dbi_cluster_dir)
 
     df.loc[next_idx] = [
-        'exp{}'.format(next_idx),
-        extractor.config['face_cloth_weights'],
+        'exp{}'.format(str(next_idx).zfill(4)),
+        extractor.video_path.split('/')[-1],
+        str(extractor.src_info['frame_h']) + 'x' + str(extractor.src_info['frame_w']),
+        extractor.src_info['fps'],
+        extractor.src_info['num_seconds'],
         extractor.config['sim_threshold'],
         extractor.config['face_cnt'],
         extractor.config['min_csize'],
+        extractor.config['face_cloth_weights'],
         extractor.config['use_merging'],
         len(extractor.final_dict),
+        extractor.total_time,
         DBI
     ]
-    print(df)
 
     df.to_csv(log_csv_path, index=False)
 
-    imgs = [cluster['repr_img_array'] for cluster in extractor.final_dict.values()]
-    img_width = [img.shape[1] for img in imgs]
-    img_height = [img.shape[0] for img in imgs]
+    imgs = [(cluster['repr_img_array'], cluster['num_samples']) for cluster in extractor.final_dict.values()]
+    
+    
+    img_width = [img[0].shape[1] for img in imgs]
+    img_height = [img[0].shape[0] for img in imgs]
     max_width = max(img_width)
     total_height = sum(img_height)
 
     combined_img = np.ones((total_height, max_width, 3))
 
     cum_height = 0
-    for img in imgs:
+    for img, num_samples in imgs:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        cv2.putText(img, "samples: {}".format(num_samples), (0, 30), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(255, 255, 100), thickness=2)
         combined_img[cum_height: cum_height + img.shape[0], : img.shape[1]] = img
         cum_height += img.shape[0]
 
     combined_img = combined_img.astype(np.int32)
-    cluster_img_path = osp.join(log_dir, 'exp{}.png'.format(next_idx))
+    cluster_img_path = osp.join(log_dir, 'exp{}.png'.format(str(next_idx).zfill(4)))
     cv2.imwrite(cluster_img_path, combined_img)
 
     shutil.rmtree(result_dir)
@@ -75,7 +82,7 @@ if __name__ == '__main__':
     parser.add_argument('--sim-thresh', type=float, default=0.63)
     parser.add_argument('--face-cnt', type=int, default=250)
     parser.add_argument('--min-csize', type=int, default=10)
-    parser.add_argument('--use-merging', type=bool, default=True)
+    parser.add_argument('--use-merging', type=str, default='true')
 
     args = parser.parse_args()
 
