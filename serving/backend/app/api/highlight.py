@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from ml.face_functions import FinalTimeline
 
 import os
+import numpy as np
 
 router = APIRouter(tags=["highlight"])
 
@@ -28,10 +29,12 @@ async def read_highlight(timelines: dict):
             people_img (dict) : 선택한 인물들의 이미지 디렉토리를 dictionary형태로 담아서 제공한다. ex) "people_img" : {"person_00" : "people/person_00.png", "person_03" : "people/person_03.png"}
     """
     print(timelines)
-    face_timeline = timelines['face']
     laugh_timeline = timelines['laugh']
     id = timelines['id']
 
+    face_timelines_dir = os.path.join(FILE_DIR, id, 'face_timelines.npy')
+    face_timeline = np.load(face_timelines_dir, allow_pickle=True).item()
+
     shorts = FinalTimeline(laugh_timeline, face_timeline, id)
 
-    return {"id" : id, "shorts": shorts, "people_img" : {}}
+    return {"id" : id, "shorts": shorts, "people_img" : timelines['people_img']}
