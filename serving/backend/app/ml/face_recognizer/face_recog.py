@@ -194,7 +194,7 @@ class FaceRecognizer:
         people_timeline = {}
         for idx, person_frame in enumerate(people_frame):
             if len(person_frame)==0:
-                people_timeline.append([])
+                people_timeline[target_people[idx]] = []
                 continue
             person_timeline=[]
             scene_index = 0
