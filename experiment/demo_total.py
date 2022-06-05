@@ -29,7 +29,7 @@ final_clusters = extractor.cluster_video()
 
 # recognition
 target_people = ['person_0', 'person_1']
-target_encoding = [final_clusters[person]['repr_encoding'] for person in target_people]
+target_encoding = [final_clusters[person]['avg_encoding'] for person in target_people]
 
 recognizer = FaceRecognizer(VIDEO_PATH, target_encoding=target_encoding)
 timelines, output_frames = recognizer.recognize_faces()
@@ -47,9 +47,11 @@ for target_person_timeline in people_timeline:
 if not osp.isdir(SHORTS_SAVE_PATH):
     os.makedirs(SHORTS_SAVE_PATH)
 
+shorts_ind = 0
 for short in shorts:
     if short[1] > 0:
-        for ind,(start,end,_,_) in enumerate(short[0]):
-            SHORTS_PATH = SHORTS_SAVE_PATH + SHORTS_NAME + str(ind) + '.mp4'
+        for start,end,_,_ in short[0]:
+            SHORTS_PATH = SHORTS_SAVE_PATH + SHORTS_NAME + str(shorts_ind) + '.mp4'
             video = VideoFileClip(VIDEO_PATH).subclip(start,end).fx(vfx.fadein,1).fx(vfx.fadeout,1)
             video.write_videofile(SHORTS_PATH)
+            shorts_ind += 1
