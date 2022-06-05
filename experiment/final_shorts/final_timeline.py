@@ -15,9 +15,14 @@ def make_final_timeline(laughter_timeline,person_timeline,max_length=None):
             s = max(s,start)
             e = min(e,end)
             length += (e-s)
-        if length/shot_length > 0.3:
-            final.append((start,end,interest,round(length/shot_length,3)))
-            total_length += shot_length
+        if shot_length < 35:
+            if length/shot_length > 0.35:
+                final.append((start,end,interest,round(length/shot_length,3)))
+                total_length += shot_length
+        else:
+            if length/shot_length > 0.30:
+                final.append((start,end,interest,round(length/shot_length,3)))
+                total_length += shot_length  
             
     # max_length 넘어가는 경우 등장비율 높은 순서로 max_length 이내로 선택
     if max_length and total_length > max_length:

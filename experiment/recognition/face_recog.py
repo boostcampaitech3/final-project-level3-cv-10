@@ -9,10 +9,12 @@ sys.path.append('../')
 import imagecluster.calc as calc
 
 class FaceRecognizer:
-    def __init__(self,video_path,target_encoding,batch_size=16):
+    def __init__(self,video_path,target_encoding,threshold=0.63,feature_weight=[2,1],batch_size=16):
         self.video_path = video_path
         self.target_encoding = target_encoding
         self.target_count = len(target_encoding)
+        self.threshold = threshold
+        self.weight = feature_weight
         self.batch_size = batch_size
         
         self.src = cv2.VideoCapture(self.video_path)
@@ -83,7 +85,8 @@ class FaceRecognizer:
         frames_real_time = []
         output_frame = [[] for _ in range(self.target_count)]
         frame_num = 0
-        cloth_encoding_model = calc.get_model()     
+        cloth_encoding_model = calc.get_model()
+        self.target_encoding = [np.concatenate([encoding[:128]*self.weight[0],encoding[128:]/0.7*self.weight[1]]) for encoding in self.target_encoding]
         
         last_frame = None
         start_frame_num = 0
@@ -154,8 +157,8 @@ class FaceRecognizer:
                         for i in range(len(face_encodings)):
                             normalized_face_encoding = face_encodings[i] / np.linalg.norm(face_encodings[i])
                             normalized_cloth_encoding = cloth_encodings[i] / np.linalg.norm(cloth_encodings[i])
-                            encoding = np.concatenate((normalized_face_encoding*1, normalized_cloth_encoding*0.7), axis=0)
-                            match = face_recognition.compare_faces(self.target_encoding, encoding, tolerance=0.40)
+                            encoding = np.concatenate((normalized_face_encoding*self.weight[0], normalized_cloth_encoding*self.weight[1]), axis=0)
+                            match = face_recognition.compare_faces(self.target_encoding, encoding, tolerance=self.threshold)
                             for i in range(len(match)):
                                 if match[i]:
                                     output_frame[i].append(frames_real_time[frame_number_in_batch])
@@ -178,8 +181,8 @@ class FaceRecognizer:
                     for i in range(len(face_encodings)):
                         normalized_face_encoding = face_encodings[i] / np.linalg.norm(face_encodings[i])
                         normalized_cloth_encoding = cloth_encodings[i] / np.linalg.norm(cloth_encodings[i])
-                        encoding = np.concatenate((normalized_face_encoding*1, normalized_cloth_encoding*0.7), axis=0)
-                        match = face_recognition.compare_faces(self.target_encoding, encoding, tolerance=0.40)
+                        encoding = np.concatenate((normalized_face_encoding*self.weight[0], normalized_cloth_encoding*self.weight[1]), axis=0)
+                        match = face_recognition.compare_faces(self.target_encoding, encoding, tolerance=self.threshold)
                         for i in range(len(match)):
                             if match[i]:
                                 output_frame[i].append(frames_real_time[frame_number_in_batch])
