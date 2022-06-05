@@ -6,7 +6,6 @@ import axios from 'axios';
 const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
 
     const people_img = [...new Set(response.shorts.map(short => short[0]))];
-    console.log(people_img);
 
     const renderPeople = (URL, response) => {
         const people_imgs = [];
@@ -60,7 +59,7 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
             <div style={{textAlign: "left", fontSize: "17px", padding: "3px"}}>
                 <div style={{marginBottom: "20px"}}>
                     <StyledTitle>
-                        총 영상 개수
+                        총 쇼츠 개수
                     </StyledTitle>
                     <div style={{padding: "5px"}}>
                         {`${response.shorts.length}개`}
@@ -80,7 +79,7 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
             <StyledButton onClick={onCheckAll}>
                 {checkAll ? '전체 선택 해제' : '전체 선택'}
             </StyledButton>
-            <StyledButton onClick={handleDownload}>선택한 영상 다운로드</StyledButton>
+            <StyledButton onClick={handleDownload}>선택한 쇼츠 다운로드</StyledButton>
         </StyledPanel>
     );
 };
