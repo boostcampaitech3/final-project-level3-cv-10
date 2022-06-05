@@ -73,21 +73,21 @@ class LaughterDetector:
             if end<s-12:
                 if end-start>20:
                     mean_amp /= mean_amp_count
-                    laugh_length /= (end-start+8.5)
-                    output_timeline.append((round(start-10,2),round(end+1.5,2),round(laugh_length,2),round(mean_amp,4)))
+                    laugh_length /= (end-start+10.5)
+                    output_timeline.append((round(start-10,2),round(end+0.5,2),round(laugh_length,2),round(mean_amp,4)))
                     laugh_length = 0
                     mean_amp = 0
                     mean_amp_count = 0
                 start,end = s,e
-                laugh_length += (e-s)
-                mean_amp += audio_utils.get_mean_amplitude(audio,sr,s,e)
-                mean_amp_count += 1
+                laugh_length = (e-s)
+                mean_amp = audio_utils.get_mean_amplitude(audio,sr,s,e)
+                mean_amp_count = 1
             else:
                 laugh_length += (e-s)
                 mean_amp += audio_utils.get_mean_amplitude(audio,sr,s,e)
                 mean_amp_count += 1
                 end = e
-        output_timeline.append((round(start-10,2),round(end+1.5,2),round(laugh_length/(end-start+8.5),2),round(mean_amp/mean_amp_count,4)))
+        output_timeline.append((round(start-10,2),round(end+0.5,2),round(laugh_length/(end-start+10.5),2),round(mean_amp/mean_amp_count,4)))
         if output_timeline[0][0]<0:
             output_timeline[0]=(0,output_timeline[0][1],output_timeline[0][2],output_timeline[0][3]) # 시작값 0보다 작은경우
         if output_timeline[-1][1]>whole_length:
@@ -109,6 +109,6 @@ class LaughterDetector:
             if f2 > feat_2_max:
                 feat_2_max = f2
         for start, end, f1, f2 in input_timeline:
-            infos = (start, end, round((f1-feat_1_min)/(feat_1_max-feat_1_min) + (f2-feat_2_min)/(feat_2_max-feat_2_min),2))
+            infos = (start, end, round(0.66*(f1-feat_1_min)/(feat_1_max-feat_1_min) + 0.33*(f2-feat_2_min)/(feat_2_max-feat_2_min),2))
             output_timeline.append(infos)
         return output_timeline
