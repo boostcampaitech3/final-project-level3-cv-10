@@ -5,7 +5,6 @@ import axios from 'axios';
 
 const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
 
-    // people_img는 이걸로 이용하면 ok!
     const people_img = [...new Set(response.shorts.map(short => short[0]))];
     console.log(people_img);
 
@@ -71,7 +70,7 @@ const DownloadPanel = ({URL, response, checkedList, checkAll, onCheckAll}) => {
                     <StyledTitle>
                         쇼츠 내 인물 정보
                     </StyledTitle>
-                    <div style={{padding: "5px", marginTop: "5px", width:"100%", display: "flex"}}>
+                    <div style={{padding: "5px", marginTop: "5px", width:"100%"}}>
                         <Row gutter={5}>
                             {renderPeople(URL, response)}
                         </Row>
