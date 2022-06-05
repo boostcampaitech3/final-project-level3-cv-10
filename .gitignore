@@ -8,4 +8,3 @@ cuda_11.0.2_450.51.05_linux.run
 cudnn-11.3-linux-x64-v8.2.1.32.tgz
 cuda/
 result/
-**/log/
