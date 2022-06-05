@@ -59,6 +59,16 @@ async def show_people(id: UUID):
         blob = bucket.blob(blob_dir)
         blob.upload_from_filename(img_path)
         people_img[person] = blob_dir
+    
+    # saving wav file to GCS for STT
+    server_path = os.path.join(FILE_DIR, str(id))
+    wav_path = os.path.join(server_path, 'original_audio')
+    original_file = [ori_file for ori_file in os.listdir(server_path) if ori_file.startswith('original.')]
+    if original_file:
+        video_path = os.path.join(server_path, original_file[0])
+        os.system('ffmpeg -i {} -acodec pcm_s16le -ar 16000 {}.wav'.format(video_path, wav_path))
+    blob = bucket.blob(os.path.join(str(id), 'original_audio.wav'))
+    blob.upload_from_filename(wav_path + '.wav')
 
     # print(people_img)
     return {"id": id, "people_img": people_img}
