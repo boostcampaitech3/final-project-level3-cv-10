@@ -1,4 +1,5 @@
 from moviepy.editor import *
+import ffmpeg
 
 from google.cloud import storage
 storage_client = storage.Client()
@@ -22,6 +23,8 @@ def make_shorts(final_highlights, total_length, id, target_person):
 
     CURRENT_DIR = os.getcwd()
 
+    in_file = ffmpeg.input(VIDEO_DIR)
+
     target_person_shorts = []
     for idx, (start, end, interest, during) in enumerate(final_highlights):
         print("Making Clips...")
@@ -31,11 +34,18 @@ def make_shorts(final_highlights, total_length, id, target_person):
         HIGHLISHT_STORAGE_DIR = os.path.join(SHORTS_STORAGE_DIR, f"short_{target_person}_{idx}.mp4")
         blob = bucket.blob(HIGHLISHT_STORAGE_DIR)
 
-        clip = VideoFileClip(VIDEO_DIR).subclip(start,end).fx(vfx.fadein,1).fx(vfx.fadeout,1)        
+        (
+            in_file
+            .trim(start_frame=start, end_frame=end)
+            .output(HIGHLIGHT_PATH)
+            .run()
+        )
+
+        # clip = VideoFileClip(VIDEO_DIR).subclip(start,end).fx(vfx.fadein,1).fx(vfx.fadeout,1)        
         
-        os.chdir(SHORTS_DIR) # for saving [video-name]TEMP_MPY_wvf_snd.mp3 file in files/[uuid]/shorts
-        clip.write_videofile(HIGHLIGHT_PATH)
-        os.chdir(CURRENT_DIR) # come back to original directory
+        # os.chdir(SHORTS_DIR) # for saving [video-name]TEMP_MPY_wvf_snd.mp3 file in files/[uuid]/shorts
+        # clip.write_videofile(HIGHLIGHT_PATH)
+        # os.chdir(CURRENT_DIR) # come back to original directory
 
         blob.upload_from_filename(HIGHLIGHT_PATH)
 
