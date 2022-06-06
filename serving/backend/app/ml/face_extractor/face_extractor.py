@@ -17,6 +17,7 @@ from ml.imagecluster import Person, Face, PersonDB
 import random
 import torch
 import matplotlib.pyplot as plt
+import ffmpeg
 
 class FaceExtractor:
     def __init__(self, video_path, data_dir='data/', result_dir='result', threshold=0.48, skip_seconds=3, use_clipped_video=True, clip_start=0, clip_end=60,
@@ -57,6 +58,21 @@ class FaceExtractor:
 
         # Import video
         self.src = cv2.VideoCapture(self.video_path)
+        
+        # probe = ffmpeg.probe(self.video_path)
+        # self.video_info = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+        # print("Read Video!!!!")
+
+        # self.src, _ = (
+        #     ffmpeg
+        #     .input(self.video_path)
+        #     .output('pipe:', framerate=30.0, format='rawvideo', pix_fmt='rgb24')
+        #     .run(capture_stdout=True)
+        # )
+        
+
+        # width = int(video_stream['width'])
+        # height = int(video_stream['height'])
         self.skip_seconds = skip_seconds
         self.skip_frames = int(round(self.src.get(5) * self.skip_seconds))
 
@@ -66,6 +82,11 @@ class FaceExtractor:
             'fps': self.src.get(cv2.CAP_PROP_FPS),
             'num_frames': self.src.get(cv2.CAP_PROP_FRAME_COUNT),
             'num_seconds': self.src.get(cv2.CAP_PROP_FRAME_COUNT) / self.src.get(cv2.CAP_PROP_FPS)
+            # 'frame_w': int(self.video_info['width']),
+            # 'frame_h': int(self.video_info['height']),
+            # 'fps': 30.0,
+            # 'num_frames': int(self.video_info['nb_frames']),
+            # 'num_seconds': int(self.video_info['nb_frames']) / 30.0
         }
         
         # Face Classifier
@@ -110,6 +131,11 @@ class FaceExtractor:
 
         while True:
             success, frame = self.src.read()
+            # frame = (
+            #     np
+            #     .frombuffer(self.src, np.uint8)
+            #     .reshape([-1, self.src_info['height'], self.src_info['width'], 3])
+            # )
             if frame is None:
                 break
             
