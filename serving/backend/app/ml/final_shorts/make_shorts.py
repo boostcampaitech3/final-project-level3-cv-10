@@ -34,12 +34,19 @@ def make_shorts(final_highlights, total_length, id, target_person):
         HIGHLISHT_STORAGE_DIR = os.path.join(SHORTS_STORAGE_DIR, f"short_{target_person}_{idx}.mp4")
         blob = bucket.blob(HIGHLISHT_STORAGE_DIR)
 
-        (
-            in_file
-            .trim(start_frame=start, end_frame=end)
-            .output(HIGHLIGHT_PATH)
-            .run()
+        vid = (
+            in_file.video
+            .trim(start=start, end=end)
+            .setpts('PTS-STARTPTS')
         )
+        aud = (
+            in_file.audio
+            .filter_('atrim', start=start, end=end)
+            .filter_('asetpts', 'PTS-STARTPTS')
+        )
+        joined = ffmpeg.concat(vid, aud, v=1, a=1).node
+        output = ffmpeg.output(joined[0], joined[1], HIGHLIGHT_PATH)
+        output.run()
 
         # clip = VideoFileClip(VIDEO_DIR).subclip(start,end).fx(vfx.fadein,1).fx(vfx.fadeout,1)        
         
