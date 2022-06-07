@@ -24,9 +24,7 @@ def FaceClustering(video_path: str = "", save_dir:str = ""):
     extractor = FaceExtractor(
         video_path=video_path,
         data_dir=None,
-        result_dir=save_dir,
-        threshold=0.63,
-        face_cnt=250
+        result_dir=save_dir
     )
 
     # Extract Faces
@@ -43,7 +41,7 @@ def FaceClustering(video_path: str = "", save_dir:str = ""):
 def FaceRecognition(video_path: str="", target_people: list=[], result_path: str=""):
 
     result_data = np.load(result_path, allow_pickle=True).item()
-    target_encoding = [result_data[person]['repr_encoding'] for person in target_people]
+    target_encoding = [result_data[person]['avg_encoding'] for person in target_people]
 
     # Initialize Face Recognizor
     recognizer = FaceRecognizer(video_path, target_encoding=target_encoding)
