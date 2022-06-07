@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from "styled-components";
 import axios from 'axios';
 import { Spin, Upload, message } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { FACE_API, LAUGHTER_API } from '../config';
+import { LaughterContext } from '../context';
 
 
 const { Dragger } = Upload;
@@ -16,6 +17,8 @@ function UploadVideo() {
   const [res, setRes] = useState({});
   const [people, setPeople] = useState({});
   const [file, setFile] = useState();
+
+  const { laughterTimeline, setLaughterTimeline } = useContext(LaughterContext);
 
   const navigate = useNavigate();
 
@@ -62,7 +65,7 @@ function UploadVideo() {
     const getLaughterDetection = () => {
       return axios({
         method: "post",
-        url: `${LAUGHTER_API}/upload-video`,
+        url: `${LAUGHTER_API}/laughter-detection`,
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -84,17 +87,20 @@ function UploadVideo() {
       });
     }
 
-    await axios.all([getFaceClustering(), getLaughterDetection()])
-      .then(axios.spread(function (face_clustering, laughter_detection) {
-          var tmp = { ...face_clustering.data};
-          tmp["id_laughter"] = laughter_detection.data.id_laughter;
-          setRes(tmp);
-          console.log(tmp);
-          getPeopleImg(tmp["id"])
-      })).catch((error) => {
-        console.log("Failure :(");
-      });
+    getFaceClustering().then((response) => {
+      setRes(response.data);
+      console.log(response.data);
+      getPeopleImg(response.data.id);
+    }).catch((error) => {
+      console.log("Failure :(");
+    });
 
+    getLaughterDetection().then((response) => {
+      console.log(response.data);
+      setLaughterTimeline(response.data.laugh);
+    }).catch((error) => {
+      console.log("Failure :(");
+    });
   };
 
   return (
@@ -114,13 +120,12 @@ function UploadVideo() {
             <p style={{fontSize: '18px', color: '#707070', fontWeight: 'bold'}}>원본 영상을 업로드해주세요.</p>
           </Dragger>
         </StyledUpload>
+        { next ? (
+          <StyledButton onClick={handleClick}>인물 선택하기!</StyledButton>
+        ) : (
+          <StyledButton onClick={uploadModule}>비디오 업로드하기!</StyledButton>
+        )}
       </Spin>
-      {
-        !next && (<StyledButton onClick={uploadModule}>비디오 업로드하기!</StyledButton>)
-      }
-      {
-        next && (<StyledButton onClick={handleClick}>인물 선택하기!</StyledButton>)
-      }
     </div>
   );
 }

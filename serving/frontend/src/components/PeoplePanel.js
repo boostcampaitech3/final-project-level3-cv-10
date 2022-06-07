@@ -1,9 +1,10 @@
 import { Spin, Checkbox, Avatar, Image, Modal } from 'antd';
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
-import { STORAGE, FACE_API, LAUGHTER_API } from '../config';
+import { STORAGE, FACE_API } from '../config';
+import { LaughterContext } from '../context';
 
 
 function PeoplePanel(props) {
@@ -12,14 +13,27 @@ function PeoplePanel(props) {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    const { laughterTimeline, setLaughterTimeline } = useContext(LaughterContext);
+    const [faceResult, setFaceResult] = useState(null);
+    
+    useEffect(() => {
+        // laughterTimeline과 faceResult(faceTimeline)가 모두 추출된 경우
+        if (laughterTimeline && faceResult) {
+            console.log("laughter: ", laughterTimeline);
+            console.log("face: ", faceResult);
+            var res = {...faceResult};
+            res["laugh"] = laughterTimeline;
+            console.log(res);
+            getHighlight(res);
+        }
+    }, [laughterTimeline, faceResult]);
+
     const handleClick = (res) => { 
-        
         navigate("/select-video", { state : res }); 
     };
 
     const onChange = (list) => {
         setCheckedList(list);
-        console.log(list);
     };
 
     const render = (people) => {
@@ -52,8 +66,7 @@ function PeoplePanel(props) {
         });
     };
 
-    const personSelect = async () => {
-
+    const personSelect = async() => {
         const FaceTimeline = () => {
             return axios({
                 method:"post",
@@ -62,27 +75,15 @@ function PeoplePanel(props) {
             });
         };
 
-        const LaughTimeline = () => {
-            return axios({
-                method: "post",
-                url : `${LAUGHTER_API}/timeline-laughter`,
-                data : {"id" : props.id_laughter}
-            });
-        };
-
         if (checkedList.length) {
             setLoading(true);
-
             console.log('checkedList', checkedList);
-            
-            await axios.all([FaceTimeline(), LaughTimeline()])
-            .then(axios.spread(function (face_timeline, laugh_timeline) {
-                var res = { ...face_timeline.data};
-                res["laugh"] = laugh_timeline.data.laugh;
-                res["people_img"] = props.people
-                getHighlight(res);
+            await FaceTimeline().then((response) => {
+                var res = {...response.data};
+                res["people_img"] = props.people;
                 console.log(res);
-            })).catch((error) => {
+                setFaceResult(res);
+            }).catch((error) => {
                 console.log("Failure :(");
             });
         } else {
@@ -93,7 +94,7 @@ function PeoplePanel(props) {
                 maskClosable: true,
             });
         }
-    };
+    }
 
     return (
         <StyledPanel>

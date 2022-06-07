@@ -3,18 +3,35 @@ import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { NavBar } from './components';
 import { UploadVideo, SelectPerson, SelectVideo } from './pages';
+import { LaughterContext } from './context';
+import React, { useState, useEffect } from 'react';
 
 
 function App() {
+
+  const [laughterTimeline, setLaughterTimeline] = useState();
+  const value = { laughterTimeline, setLaughterTimeline };
+
+  useEffect(() => {
+    if (laughterTimeline) {
+      console.log(laughterTimeline);
+    }
+    
+  }, [laughterTimeline]);
+
   return (
     <div className="App" style={{paddingTop: "50px"}}>
+      {/* <NavBar /> */}
       <BrowserRouter>
         <NavBar />
+        <LaughterContext.Provider value={value}>
         <Routes>
           <Route path="/" element={<UploadVideo />} />
           <Route path="/select-person" element={<SelectPerson />} />
           <Route path="/select-video" element={<SelectVideo />} />
         </Routes>
+        </LaughterContext.Provider>
+        {/** Footer */}
       </BrowserRouter>
     </div>
   );
