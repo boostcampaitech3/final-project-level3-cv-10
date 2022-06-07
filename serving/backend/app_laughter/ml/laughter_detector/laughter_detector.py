@@ -96,19 +96,24 @@ class LaughterDetector:
     
     
     def calculate_interest(self,input_timeline):
-        output_timeline = []
-        feat_1_min, feat_1_max = 1e3, 0
-        feat_2_min, feat_2_max = 1e3, 0
-        for start, end, f1, f2 in input_timeline:
-            if f1 < feat_1_min:
-                feat_1_min = f1
-            if f1 > feat_1_max:
-                feat_1_max = f1
-            if f2 < feat_2_min:
-                feat_2_min = f2
-            if f2 > feat_2_max:
-                feat_2_max = f2
-        for start, end, f1, f2 in input_timeline:
-            infos = (start, end, round((f1-feat_1_min)/(feat_1_max-feat_1_min) + (f2-feat_2_min)/(feat_2_max-feat_2_min),2))
-            output_timeline.append(infos)
-        return output_timeline
+        if len(input_timeline) == 0:
+            return None
+        elif len(input_timeline) == 1:
+            return [(input_timeline[0][0],input_timeline[0][1],1)]
+        else:
+            output_timeline = []
+            feat_1_min, feat_1_max = 1e3, 0
+            feat_2_min, feat_2_max = 1e3, 0
+            for start, end, f1, f2 in input_timeline:
+                if f1 < feat_1_min:
+                    feat_1_min = f1
+                if f1 > feat_1_max:
+                    feat_1_max = f1
+                if f2 < feat_2_min:
+                    feat_2_min = f2
+                if f2 > feat_2_max:
+                    feat_2_max = f2
+            for start, end, f1, f2 in input_timeline:
+                infos = (start, end, round(0.66*(f1-feat_1_min)/(feat_1_max-feat_1_min+1e-6) + 0.33*(f2-feat_2_min)/(feat_2_max-feat_2_min+1e-6),2))
+                output_timeline.append(infos)
+            return output_timeline
