@@ -17,11 +17,10 @@ from ml.imagecluster import Person, Face, PersonDB
 import random
 import torch
 import matplotlib.pyplot as plt
-import ffmpeg
 
 class FaceExtractor:
-    def __init__(self, video_path, data_dir='data/', result_dir='result', threshold=0.48, skip_seconds=3, use_clipped_video=True, clip_start=0, clip_end=60,
-                frame_batch_size=16, stop=300, skip=0, face_cnt=250, capture_cnt=60, ratio=1.0): # face_cnt=150 원래
+    def __init__(self, video_path, data_dir='data/', result_dir='result', threshold=0.63, skip_seconds=3, use_clipped_video=True, clip_start=0, clip_end=60,
+                frame_batch_size=16, stop=1000, skip=0, face_cnt=350, capture_cnt=60, ratio=1.0, face_cloth_weights=[1, 0.7], min_csize=10, use_merging=False): # face_cnt=150 원래
         '''
         :param video_path : input video absolute path
         :param sim_thresh : similarity threshold for comparing two faces
@@ -42,6 +41,9 @@ class FaceExtractor:
         self.capture_cnt = capture_cnt
         self.ratio = ratio
         self.threshold = threshold
+        self.face_cloth_weights = face_cloth_weights
+        self.min_csize = min_csize
+        self.use_merging = use_merging
         
         self.merged_cluster_dir = None
         self.fingerprints = None
@@ -58,21 +60,6 @@ class FaceExtractor:
 
         # Import video
         self.src = cv2.VideoCapture(self.video_path)
-        
-        # probe = ffmpeg.probe(self.video_path)
-        # self.video_info = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
-        # print("Read Video!!!!")
-
-        # self.src, _ = (
-        #     ffmpeg
-        #     .input(self.video_path)
-        #     .output('pipe:', framerate=30.0, format='rawvideo', pix_fmt='rgb24')
-        #     .run(capture_stdout=True)
-        # )
-        
-
-        # width = int(video_stream['width'])
-        # height = int(video_stream['height'])
         self.skip_seconds = skip_seconds
         self.skip_frames = int(round(self.src.get(5) * self.skip_seconds))
 
@@ -82,11 +69,6 @@ class FaceExtractor:
             'fps': self.src.get(cv2.CAP_PROP_FPS),
             'num_frames': self.src.get(cv2.CAP_PROP_FRAME_COUNT),
             'num_seconds': self.src.get(cv2.CAP_PROP_FRAME_COUNT) / self.src.get(cv2.CAP_PROP_FPS)
-            # 'frame_w': int(self.video_info['width']),
-            # 'frame_h': int(self.video_info['height']),
-            # 'fps': 30.0,
-            # 'num_frames': int(self.video_info['nb_frames']),
-            # 'num_seconds': int(self.video_info['nb_frames']) / 30.0
         }
         
         # Face Classifier
@@ -102,7 +84,8 @@ class FaceExtractor:
     def cluster_video(self):
         fingerprints = self.extract_fingerprints()
         clusters = self.cluster_fingerprints(fingerprints)
-        self.merge_clusters(clusters, fingerprints)
+        if self.use_merging:
+            self.merge_clusters(clusters, fingerprints)
         final_dict = self.get_final_dict()
         
         return final_dict
@@ -131,11 +114,6 @@ class FaceExtractor:
 
         while True:
             success, frame = self.src.read()
-            # frame = (
-            #     np
-            #     .frombuffer(self.src, np.uint8)
-            #     .reshape([-1, self.src_info['height'], self.src_info['width'], 3])
-            # )
             if frame is None:
                 break
             
@@ -148,6 +126,7 @@ class FaceExtractor:
             
             # Skip first n seconds
             if seconds < self.skip:
+                frame_idx += 1
                 continue
                 
             ####### Scene Detection Algorithm ######
@@ -169,8 +148,9 @@ class FaceExtractor:
             if rgb_distance > transition_threshold and frame_idx - start_frame_idx > min_scene_frames:
                 # print("({}~{})".format(start_frame_idx, frame_idx-1))
                 
-                start_org_frame = cv2.resize(start_org_frame, None, fx=0.8, fy=0.8)
-                last_org_frame = cv2.resize(last_org_frame, None, fx=0.8, fy=0.8)
+                if frame.shape[0] > 800:
+                    start_org_frame = cv2.resize(start_org_frame, None, fx=0.6, fy=0.6)
+                    last_org_frame = cv2.resize(last_org_frame, None, fx=0.6, fy=0.6)
                 
                 frames.append(start_org_frame)
                 frames.append(last_org_frame)
@@ -188,16 +168,9 @@ class FaceExtractor:
             if len(frames) < self.frame_batch_size:
                 frame_idx += 1
                 continue
-           
-            ##### Face Detection #####
-            # # Explore every n frame
-            # if frame_cnt % self.skip_frames == 0:
-            #     if frame.shape[0] > 1000:
-            #         frame = cv2.resize(frame, None, fx=0.6, fy=0.6)
-            #     frames.append(frame)
                 
             if len(frames) == self.frame_batch_size:
-                frame_fingerprints = self.fc.detect_faces(frames, self.frame_batch_size)
+                frame_fingerprints = self.fc.detect_faces(frames, self.frame_batch_size, self.face_cloth_weights)
                 if frame_fingerprints:
                     fingerprints.update(frame_fingerprints)
                     # print("Face images: ", len(fingerprints))
@@ -220,8 +193,9 @@ class FaceExtractor:
     def cluster_fingerprints(self, fingerprints):
         start_time = time.time()
         print(">>> Clustering fingerprints...")
-        clusters = calc.cluster(fingerprints, sim=self.threshold, method='single', min_csize=3)
+        clusters = calc.cluster(fingerprints, sim=self.threshold, method='single', min_csize=self.min_csize)
         postproc.make_links(clusters, osp.join(self.result_dir, 'imagecluster/clusters'))
+        self.cluster_dir = os.path.join(self.result_dir, 'imagecluster/clusters')
         # images = icio.read_images(self.result_dir, size=(224, 224))
         # fig, ax = postproc.plot_clusters(clusters, images)
         # fig.savefig(os.path.join(self.result_dir, 'imagecluster/_cluster.png'))
@@ -312,11 +286,11 @@ class FaceExtractor:
         final_selections = dict()
         cnt = 0
 
-        for sup_cluster in os.listdir(self.merged_cluster_dir):
-            for cluster_folder in os.listdir(osp.join(self.merged_cluster_dir, sup_cluster)):
+        for sup_cluster in os.listdir(self.cluster_dir):
+            for cluster_folder in os.listdir(osp.join(self.cluster_dir, sup_cluster)):
                 
                 # cluster folder
-                cluster_dir = osp.join(self.merged_cluster_dir, sup_cluster, cluster_folder)
+                cluster_dir = osp.join(self.cluster_dir, sup_cluster, cluster_folder)
 
                 # representative cluster & result path
                 repr_cluster_img_path, avg_encoding = self.pick_one(cluster_dir)
@@ -411,7 +385,21 @@ class FaceExtractor:
         print("[Total number of seconds]: {}".format(int(self.src_info['num_seconds'])))
         print("[Similiarty Threshold]: {}".format(self.threshold))
         print("[Number of target faces for clustering]: {}".format(self.face_cnt))
+        
+        print("face & cloth weights: {}".format(self.face_cloth_weights))
+        print("sim_threshold: {}".format(self.threshold))
+        print("face_cnt: {}".format(self.face_cnt))
+        print("min_csize: {}".format(self.min_csize))
+        print("use merging: {}".format(self.use_merging))
         print("-"*80)
+        
+        self.config = {
+            'face_cloth_weights': self.face_cloth_weights,
+            'sim_threshold': self.threshold,
+            'face_cnt': self.face_cnt,
+            'min_csize': self.min_csize,
+            'use_merging': self.use_merging
+        }
 
 
     def summarize_results(self):
