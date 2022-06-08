@@ -1,7 +1,8 @@
 import Message from "./Message";
-import NavBar from "./NavBar";
+import Header from "./Header";
 import PeoplePanel from "./PeoplePanel";
 import DownloadPanel from "./DownloadPanel";
 import Video from "./Video";
+import Footer from "./Footer";
 
-export { Message, NavBar, PeoplePanel, DownloadPanel, Video, };
+export { Message, Header, PeoplePanel, DownloadPanel, Video, Footer };

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from "styled-components";
 import { Col, Row, Checkbox } from 'antd';
 import { DownloadPanel } from '../components';
 import { Video } from '../components';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { STORAGE } from '../config';
 
 
@@ -14,10 +14,19 @@ function SelectVideo() {
 
     const [checkedList, setCheckedList] = useState([]);
     const [checkAll, setCheckAll] = useState(false);
+    const [shorts_list, setShortsList] = useState([]);
 
-    const shorts_list = location.state.shorts.map(function (element) {
-        return element[1];
-    });
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (location.state) {
+            setShortsList(() => location.state.shorts.map(function (element) {
+                return element[1];
+            }));
+        } else {
+            navigate('/');
+        }
+    }, [location.state, navigate]);
+    
 
     const renderCards = (shorts) => {
         const cards = [];
@@ -56,7 +65,7 @@ function SelectVideo() {
             >
                 다운로드 할 쇼츠를 선택하세요.
             </div>
-            { location.state !== {} && (
+            { location.state !== null && (
                 <StyledArea>
                     <div style={{width: "100%"}}>
                         <Checkbox.Group style={{width: "100%"}} value={checkedList} onChange={onChange}>
@@ -78,6 +87,7 @@ export default SelectVideo;
 const StyledArea = styled.div`
     margin: 0 auto;
     margin-top: 40px;
+    margin-bottom: 50px;
     width: 85%;
     align-items: flex-start;
     display: flex;
