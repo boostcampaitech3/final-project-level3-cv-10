@@ -2,20 +2,20 @@ import styled from "styled-components";
 import { Link } from 'react-router-dom';
 
 
-function NavBar() {
+function Header() {
 
     return (
-        <StyledNavBar>
+        <StyledHeader>
             <Link to="/" style={{color: "white", fontSize: '20px', fontWeight: 'bold'}}>
                 예능 하이라이트 <span style={{padding: "0.5px", backgroundColor: 'white', color: '#0279C1', borderRadius: '2.5px'}}>#눈#사람</span> 에서 생성하세요!
             </Link>
-        </StyledNavBar>
+        </StyledHeader>
     );
 }
 
-export default NavBar;
+export default Header;
 
-const StyledNavBar = styled.nav`
+const StyledHeader = styled.nav`
   display: flex;
   background: #0279C1;
   width: 100%;
