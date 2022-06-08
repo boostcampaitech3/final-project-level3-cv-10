@@ -1,5 +1,4 @@
 from moviepy.editor import *
-import ffmpeg
 
 from google.cloud import storage
 storage_client = storage.Client()
@@ -21,9 +20,9 @@ def make_shorts(final_highlights, total_length, id, target_person):
     VIDEO_DIR = os.path.join(FILE_DIR, id, "original.mp4")
     print(VIDEO_DIR)
 
-    CURRENT_DIR = os.getcwd()
+    # CURRENT_DIR = os.getcwd()
 
-    in_file = ffmpeg.input(VIDEO_DIR)
+    # in_file = ffmpeg.input(VIDEO_DIR)
 
     target_person_shorts = []
     for idx, (start, end, interest, during) in enumerate(final_highlights):
@@ -31,22 +30,10 @@ def make_shorts(final_highlights, total_length, id, target_person):
         HIGHLIGHT_PATH = os.path.join(SHORTS_DIR, f"short_{target_person}_{idx}.mp4")
 
         # save to gcs
-        HIGHLISHT_STORAGE_DIR = os.path.join(SHORTS_STORAGE_DIR, f"short_{target_person}_{idx}.mp4")
-        blob = bucket.blob(HIGHLISHT_STORAGE_DIR)
-
-        vid = (
-            in_file.video
-            .trim(start=start, end=end)
-            .setpts('PTS-STARTPTS')
-        )
-        aud = (
-            in_file.audio
-            .filter_('atrim', start=start, end=end)
-            .filter_('asetpts', 'PTS-STARTPTS')
-        )
-        joined = ffmpeg.concat(vid, aud, v=1, a=1).node
-        output = ffmpeg.output(joined[0], joined[1], HIGHLIGHT_PATH)
-        output.run()
+        HIGHLIGHT_STORAGE_DIR = os.path.join(SHORTS_STORAGE_DIR, f"short_{target_person}_{idx}.mp4")
+        blob = bucket.blob(HIGHLIGHT_STORAGE_DIR)
+        
+        trim_and_fade(VIDEO_DIR, start, end, HIGHLIGHT_PATH)
 
         # clip = VideoFileClip(VIDEO_DIR).subclip(start,end).fx(vfx.fadein,1).fx(vfx.fadeout,1)        
         
@@ -56,6 +43,13 @@ def make_shorts(final_highlights, total_length, id, target_person):
 
         blob.upload_from_filename(HIGHLIGHT_PATH)
 
-        target_person_shorts.append([target_person, HIGHLISHT_STORAGE_DIR, during, interest])
+        target_person_shorts.append([target_person, HIGHLIGHT_STORAGE_DIR, during, interest])
 
     return target_person_shorts
+
+
+def trim_and_fade(original_path, start, end, save_path):
+    os.system(f'ffmpeg -i {original_path} -ss {start} -to {end} -filter_complex \
+        "fade=in:st={start}:d=1, fade=out:st={end-1}:d=1; \
+        afade=in:st={start}:d=1, afade=out:st={end-1}:d=1" \
+        -c:v libx264 -c:a aac {save_path}')
