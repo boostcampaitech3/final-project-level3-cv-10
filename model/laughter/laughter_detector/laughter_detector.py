@@ -114,6 +114,6 @@ class LaughterDetector:
                 if f2 > feat_2_max:
                     feat_2_max = f2
             for start, end, f1, f2 in input_timeline:
-                infos = (start, end, round(0.66*(f1-feat_1_min)/(feat_1_max-feat_1_min+1e-6) + 0.33*(f2-feat_2_min)/(feat_2_max-feat_2_min+1e-6),2))
+                infos = (start, end, round(0.66*(f1-feat_1_min)/(feat_1_max-feat_1_min+1e-6),2),round(0.33*(f2-feat_2_min)/(feat_2_max-feat_2_min+1e-6),2))
                 output_timeline.append(infos)
             return output_timeline
