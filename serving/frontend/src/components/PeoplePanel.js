@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
 import { STORAGE, FACE_API } from '../config';
 import { LaughterContext } from '../context';
+import { LoadingOutlined } from '@ant-design/icons';
 
 
 function PeoplePanel(props) {
@@ -15,6 +16,8 @@ function PeoplePanel(props) {
 
     const { laughterTimeline, setLaughterTimeline } = useContext(LaughterContext);
     const [faceResult, setFaceResult] = useState(null);
+
+    const antIcon = <LoadingOutlined style={{ fontSize: 30, color: "#1B262C" }} spin />;
     
     useEffect(() => {
         // laughterTimeline과 faceResult(faceTimeline)가 모두 추출된 경우
@@ -98,8 +101,9 @@ function PeoplePanel(props) {
 
     return (
         <StyledPanel>
-            <Spin spinning={loading} 
-                style={{position: "absolute", top: "50%", transform: "translateY(-50%)"}} 
+            <Spin indicator={antIcon}
+                spinning={loading} 
+                style={{position: "absolute", top: "50%", transform: "translateY(-50%)", fontSize:"15px", color: "#1B262C", fontWeight: "bold"}} 
                 size="large" 
                 tip="Making shorts...">
                 <div style={{maxHeight: props.height, overflow: "auto"}}>
@@ -134,7 +138,7 @@ const StyledButton = styled.div`
     font-size: 18px;
     color: white;
     font-weight: bold;
-    background-color: #000000;
+    background-color: #1B262C;
     cursor : pointer;
     border-radius: 10px;
 `;

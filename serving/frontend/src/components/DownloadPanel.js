@@ -103,7 +103,7 @@ const StyledButton = styled.div`
     font-size: 18px;
     color: white;
     font-weight: bold;
-    background-color: #000000;
+    background-color: #1B262C;
     cursor : pointer;
     border-radius: 10px;
 `;
