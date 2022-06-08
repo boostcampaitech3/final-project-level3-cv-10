@@ -30,15 +30,15 @@ class People(BaseModel):
     message: Optional[str]
     # created_at : datetime = Field(default_factory=datetime.now)
 
+
 class ItemValue(BaseModel):
     id: str
     person: str
 
 
-
 # get으로 바꾸어 사진 보여주기
 @router.get("/show-people", description="face clustering으로 추출한 인물의 사진을 보여줍니다.")
-async def show_people(id: UUID):
+def show_people(id: UUID):
     # 사진 넣어주기
     people_img = {}
     result_path = os.path.join(FILE_DIR, str(id), 'result', 'result.npy')
@@ -75,7 +75,7 @@ async def show_people(id: UUID):
 
 
 @router.post("/timeline-face", description="face recognition을 통해 인물의 timeline을 추출한다.")
-async def get_timeline_face(info: dict):
+def get_timeline_face(info: dict):
     """face recognition을 통하여 인물의 timeline을 추출한다.
 
     Args:
@@ -112,7 +112,3 @@ async def get_timeline_face(info: dict):
     #     timelines[face] = timeline
     # FE에서 선택한 사람을 받아 face recognition 진행 예정
     return {"id" : info['id']}
-
-
-# TODO: /show-people (face clustering 결과 보여주기)
-# TODO: /timeline-face (face recognition을 통해 인물의 timeline 추출하기)

@@ -4,6 +4,7 @@ from ml.face_functions import FinalTimeline
 
 import os
 import numpy as np
+import shutil
 
 router = APIRouter(tags=["highlight"])
 
@@ -11,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_DIR = os.path.join(BASE_DIR, 'files/')
 
 @router.post("/timeline-highlight", description="최종 하이라이트에 해당하는 타임라인을 생성합니다.")
-async def read_highlight(timelines: dict):
+def read_highlight(timelines: dict):
     """최종 하이라이트에 해당하는 쇼츠들을 생성한 후 google storage에 저장한 후, 파일명을 전달하여 client에서 접근할 수 있도록 한다.
 
     Args:
@@ -35,5 +36,8 @@ async def read_highlight(timelines: dict):
     face_timeline = np.load(face_timelines_dir, allow_pickle=True).item()
 
     shorts = FinalTimeline(laugh_timeline, face_timeline, id)
+
+    # remove folder
+    shutil.rmtree(os.path.join(FILE_DIR, str(id)))
 
     return {"id" : id, "shorts": shorts, "people_img" : timelines['people_img']}
