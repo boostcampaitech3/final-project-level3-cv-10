@@ -6,6 +6,7 @@ bucket_name = 'snowman-bucket'
 bucket = storage_client.bucket(bucket_name)
 
 import os
+import ffmpeg
 
 def make_shorts(final_highlights, total_length, id, target_person):
     print("Making Shorts....")
@@ -22,7 +23,7 @@ def make_shorts(final_highlights, total_length, id, target_person):
 
     # CURRENT_DIR = os.getcwd()
 
-    # in_file = ffmpeg.input(VIDEO_DIR)
+    in_file = ffmpeg.input(VIDEO_DIR)
 
     target_person_shorts = []
     for idx, (start, end, interest, during) in enumerate(final_highlights):
@@ -35,11 +36,23 @@ def make_shorts(final_highlights, total_length, id, target_person):
         
         trim_and_fade(VIDEO_DIR, start, end, HIGHLIGHT_PATH)
 
-        # clip = VideoFileClip(VIDEO_DIR).subclip(start,end).fx(vfx.fadein,1).fx(vfx.fadeout,1)        
-        
-        # os.chdir(SHORTS_DIR) # for saving [video-name]TEMP_MPY_wvf_snd.mp3 file in files/[uuid]/shorts
-        # clip.write_videofile(HIGHLIGHT_PATH)
-        # os.chdir(CURRENT_DIR) # come back to original directory
+        vid = (
+            in_file.video
+            .trim(start=start, end=end)
+            .fade(type="in", start_time=start, duration=1)
+            .fade(type="out", start_time=end-1, duration=1)
+            .setpts('PTS-STARTPTS')
+        )
+        aud = (
+            in_file.audio
+            .filter_('atrim', start=start, end=end)
+            .filter_('afade', type='in', start_time=start, duration=1)
+            .filter_('afade', type='out', start_time=end-1, duration=1)
+            .filter_('asetpts', 'PTS-STARTPTS')
+        )
+        joined = ffmpeg.concat(vid, aud, v=1, a=1).node
+        output = ffmpeg.output(joined[0], joined[1], HIGHLIGHT_PATH)
+        output.run()
 
         blob.upload_from_filename(HIGHLIGHT_PATH)
 
@@ -49,7 +62,11 @@ def make_shorts(final_highlights, total_length, id, target_person):
 
 
 def trim_and_fade(original_path, start, end, save_path):
-    os.system(f'ffmpeg -i {original_path} -ss {start} -to {end} -filter_complex \
-        "fade=in:st={start}:d=1, fade=out:st={end-1}:d=1; \
-        afade=in:st={start}:d=1, afade=out:st={end-1}:d=1" \
-        -c:v libx264 -c:a aac {save_path}')
+    print(f"start making {save_path}")
+    os.system(f'ffmpeg -ss {start} -i {original_path} -to {end} -filter_complex \
+         "fade=in:st={start}:d=1, fade=out:st={end-1}:d=1; \
+         afade=in:st={start}:d=1, afade=out:st={end-1}:d=1" \
+        -c:v copy -c:a copy {save_path}')
+    # os.system(f'ffmpeg -i {original_path} -vf "trim=start={start}:end={end}, fade=in:st={start}:d=1, fade=out:st={end-1}:d=1" \
+    #     -af "atrim=start={start}:end={end}, afade=in:st={start}:d=1, afade=out:st={end-1}:d=1"\
+    #      {save_path}')
