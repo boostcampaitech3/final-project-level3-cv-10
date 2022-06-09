@@ -73,7 +73,7 @@ const Video = ({index, shorts, URL, response}) => {
                         onClick={() => setVisible(true)}>
                         <div style={{fontWeight: "bold"}}>{shorts[index][1].split("/").pop().split(".")[0]}</div>
                         <div style={{color: "#555555"}}>{getTime(shorts[index][2])}</div>
-                        <div style={{color: "#555555"}}>keywords</div>
+                        {/* <div style={{color: "#555555"}}>keywords</div> */}
                     </div>
                     <div>
                         <Checkbox value={shorts[index][1]}></Checkbox>
