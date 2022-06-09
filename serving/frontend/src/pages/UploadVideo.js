@@ -230,13 +230,13 @@ function UploadVideo() {
         ) }
         <StyledArea>
           <div style={{fontSize: "19px", textAlign: "left", fontWeight: "bold", marginBottom: "7px"}}>
-            Youtube 영상은 URL을 통해서도 업로드할 수 있습니다.
+            Youtube 영상은 URL을 이용하여 업로드할 수 있습니다.
           </div>
           <div style={{fontSize: "14px", textAlign: "left", marginBottom: "15px", color: '#707070'}}>
             720p를 지원하는 영상만 가능합니다.
           </div>
           <div style={{display: "flex"}}>
-            <Form size={'large'} style={{flexGrow: "1"}} autoComplete="off" onFinish={uploadYTModule} onFinishFailed={onFinishFailed} layout="inline">
+            <Form size={'large'} style={{flexGrow: "1", alignItems: "flex-start"}} autoComplete="off" onFinish={uploadYTModule} onFinishFailed={onFinishFailed} layout="inline">
               <Form.Item name="url" rules={[{ type: 'url', warningOnly: false }]} style={{flexGrow: "1", margin: "auto"}}>
                 <Input placeholder="Youtube URL을 입력해주세요." />
               </Form.Item>

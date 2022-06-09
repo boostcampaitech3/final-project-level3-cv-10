@@ -112,7 +112,7 @@ function PeoplePanel(props) {
                     </Checkbox.Group>
                 </div>
                 <StyledButton onClick={personSelect}>
-                    인물 선택 완료!
+                    인물 선택 완료
                 </StyledButton>
             </Spin>
         </StyledPanel>

@@ -63,7 +63,7 @@ function SelectVideo() {
                 paddingTop: "30px",
                 fontSize: "25px"}}
             >
-                다운로드 할 쇼츠를 선택하세요.
+                다운로드할 쇼츠를 선택하세요.
             </div>
             { location.state !== null && (
                 <StyledArea>
