@@ -7,7 +7,6 @@ import { PeoplePanel } from '../components';
 function SelectPerson() {
 
     const location = useLocation();
-    console.log(location.state);
 
     const ref = useRef();
     const [height, setHeight] = useState();

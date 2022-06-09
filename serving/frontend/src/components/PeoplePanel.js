@@ -22,11 +22,8 @@ function PeoplePanel(props) {
     useEffect(() => {
         // laughterTimeline과 faceResult(faceTimeline)가 모두 추출된 경우
         if (laughterTimeline && faceResult) {
-            console.log("laughter: ", laughterTimeline);
-            console.log("face: ", faceResult);
             var res = {...faceResult};
             res["laugh"] = laughterTimeline;
-            console.log(res);
             getHighlight(res);
         }
     }, [laughterTimeline, faceResult]);
@@ -63,7 +60,6 @@ function PeoplePanel(props) {
         await axios.post(
             `${FACE_API}/timeline-highlight`, res
         ).then((response) => {
-            console.log(response);
             setLoading(false);
             handleClick(response.data);
         });
@@ -80,11 +76,9 @@ function PeoplePanel(props) {
 
         if (checkedList.length) {
             setLoading(true);
-            console.log('checkedList', checkedList);
             await FaceTimeline().then((response) => {
                 var res = {...response.data};
                 res["people_img"] = props.people;
-                console.log(res);
                 setFaceResult(res);
             }).catch((error) => {
                 console.log("Failure :(");
