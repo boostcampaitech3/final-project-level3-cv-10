@@ -1,3 +1,4 @@
+from lib2to3.pgen2.token import OP
 from fastapi import FastAPI, File, UploadFile, APIRouter, HTTPException
 
 import os
@@ -56,6 +57,7 @@ def create_video_file(file: UploadFile = File(...)):
 
 class YTVideo(BaseModel):
     id: UUID = Field(default_factory=uuid4)
+    video: Optional[str]
     file_name: str
     created_at : datetime = Field(default_factory=datetime.now)
 
