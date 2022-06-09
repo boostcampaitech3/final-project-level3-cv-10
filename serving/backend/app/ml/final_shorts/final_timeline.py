@@ -19,13 +19,13 @@ def make_final_timeline(laughter_timeline,person_timeline,max_length=None):
             if length/shot_length > 0.35:
                 person_interest = (length/shot_length - 0.3)/0.4
                 total_interest = laugh_len*3 + laugh_db*2 + person_interest*1
-                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3)))
+                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3), shot_length))
                 total_length += shot_length
         else:
             if length/shot_length > 0.30:
                 person_interest = (length/shot_length - 0.3)/0.4
                 total_interest = laugh_len*3 + laugh_db*2 + person_interest*1
-                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3)))
+                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3), shot_length))
                 total_length += shot_length  
             
     # max_length 넘어가는 경우 흥미도 높은 순서로 max_length 이내로 선택
@@ -39,12 +39,12 @@ def make_final_timeline(laughter_timeline,person_timeline,max_length=None):
                 break
             else:
                 total_length += length
-                choose_index[final.index((start,end,interest,ratio))] = True
+                choose_index[final.index((start,end,interest,ratio,duration))] = True
                 
         new_final = []
-        for ind, (s,e,i,r) in enumerate(final):
+        for ind, (s,e,i,r,d) in enumerate(final):
             if choose_index[ind]:
-                new_final.append((s,e,i,r))
+                new_final.append((s,e,i,r,d))
         final = new_final
     
     # interest 순서로 정렬
