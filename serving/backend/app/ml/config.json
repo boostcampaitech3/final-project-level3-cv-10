@@ -1,0 +1,14 @@
+{
+    "face_extractor": {
+        "sim_thresh": 0.35,
+        "skip_seconds": 1,
+        "use_clipped_video": false,
+        "clip_start": 0,
+        "clip_end": 60
+    },
+
+    "face_recognition" : {
+        "check_frame": 16,
+        "batch_size": 16
+    }
+}

@@ -1,0 +1,6 @@
+// 본 파일을 복제하고 "config.js"로 파일 이름을 변경한 후, 개발 환경에서 사용할 URL을 설정하세요.
+// "config.js" 파일은 .gitignore에 등록되어 repository에 업로드되지 않습니다.
+
+export const STORAGE = ''; // ex) 'https://storage.googleapis.com/snowman-bucket/'
+export const FACE_API = ''; // ex) 'http://101.101.218.23:30001'
+export const LAUGHTER_API = ''; // ex) 'http://118.67.130.53:30003'
