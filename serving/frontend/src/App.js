@@ -13,10 +13,7 @@ function App() {
   const value = { laughterTimeline, setLaughterTimeline };
 
   useEffect(() => {
-    if (laughterTimeline) {
-      console.log(laughterTimeline);
-    }
-    
+
   }, [laughterTimeline]);
 
   return (
