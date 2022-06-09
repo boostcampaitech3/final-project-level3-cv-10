@@ -33,7 +33,7 @@ def make_final_timeline(laughter_timeline,person_timeline,max_length=None):
         sorted_timeline = sorted(final,key=lambda x:-x[2])
         choose_index = [False for _ in range(len(sorted_timeline))]
         total_length = 0
-        for start,end,interest,ratio in sorted_timeline:
+        for start,end,interest,ratio, duration in sorted_timeline:
             length = end - start
             if total_length + length > max_length:
                 break
