@@ -26,7 +26,7 @@ def make_shorts(final_highlights, total_length, id, target_person):
     in_file = ffmpeg.input(VIDEO_DIR)
 
     target_person_shorts = []
-    for idx, (start, end, interest, during) in enumerate(final_highlights):
+    for idx, (start, end, interest, ratio, during) in enumerate(final_highlights):
         print("Making Clips...")
         HIGHLIGHT_PATH = os.path.join(SHORTS_DIR, f"short_{target_person}_{idx}.mp4")
 
