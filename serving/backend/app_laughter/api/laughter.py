@@ -33,6 +33,16 @@ class VideoTimeline(BaseModel):
 
 @router.post("/laughter-detection", description="laughter timeline을 추출하는 전과정을 수행합니다.")
 def laughter_detection(file: UploadFile = File(...)):
+    """Upload된 영상을 통하여 laughter timeline을 추출하는 전 과정을 수행합니다.
+
+    Args:
+        file (UploadFile, optional): formData로 보내진 video data. Defaults to File(...).
+
+    Returns:
+        VideoTimeline (BaseModel): 
+            id (UUID): 영상을 구분할 수 있는 구분자.
+            laugh (List[Tuple], optional): 전체 영상에 대하여 웃음에 해당하는 timeline.
+    """
     # download the uploaded video
     new_video = Video(file_name=file.filename)
     os.makedirs(os.path.join(FILE_DIR, str(new_video.id_laughter)))
@@ -56,6 +66,17 @@ def laughter_detection(file: UploadFile = File(...)):
 
 @router.post("/laughter-detection-youtube", description="유튜브 URL을 이용하여 laughter timeline을 추출하는 전과정을 수행합니다.")
 def laughter_detection_from_youtube(info: dict):
+    """유튜브 URL을 이용하여 laughter timeline을 추출하는 전 과정을 수행합니다.
+
+    Args:
+        info (dict):
+            url (str): 유튜브 영상 url
+
+    Returns:
+        VideoTimeline: 
+            id (UUID): 영상을 구분할 수 있는 구분자.
+            laugh (List[Tuple], optional): 전체 영상에 대하여 웃음에 해당하는 timeline.
+    """
     yt_video = YouTube(info['url'])
     new_video = Video(file_name=yt_video.title + '.mp4')
 
