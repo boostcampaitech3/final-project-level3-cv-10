@@ -28,6 +28,5 @@ def LaughterDetection(video_path: str = "", wav_path: str = "", ml_path: str = "
 
     # calculate interest and make final timeline
     final_laughter_timeline = detector.calculate_interest(laughter_timeline)
-    print(final_laughter_timeline)
 
     return final_laughter_timeline

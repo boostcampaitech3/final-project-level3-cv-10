@@ -17,8 +17,6 @@ This module is config-based: Modify config.json for different experiments
 
 ########## Face Clustering ############
 def FaceClustering(video_path: str = "", save_dir:str = ""):
-    # Load config
-    # cfg = load_json('./ml/config.json')
 
     # Initialize Face Extractor
     extractor = FaceExtractor(
@@ -62,8 +60,6 @@ def FinalTimeline(laugh_timeline : list, people_timeline : dict, id : str):
 
     shorts = []
     for target_person in iter(people_timeline.keys()):
-        print(target_person)
-        print(people_timeline[target_person])
         if people_timeline[target_person] == [[]]:
             continue
         final_timeline, total_length = make_final_timeline(laugh_timeline, people_timeline[target_person])

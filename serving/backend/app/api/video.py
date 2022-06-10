@@ -1,3 +1,4 @@
+from lib2to3.pgen2.token import OP
 from fastapi import FastAPI, File, UploadFile, APIRouter, HTTPException
 
 import os
@@ -13,13 +14,6 @@ from google.cloud import storage
 storage_client = storage.Client()
 bucket_name = 'snowman-bucket'
 bucket = storage_client.bucket(bucket_name)
-
-
-# # google cloud storage
-# from google.cloud import storage
-# storage_client = storage.Client()
-# bucket_name = 'snowman-bucket'
-# bucket = storage_client.batch(bucket_name)
 
 from ml.face_functions import FaceClustering
 
@@ -38,8 +32,18 @@ class Video(BaseModel):
 
 @router.post("/upload-video", description="비디오를 업로드합니다.")
 def create_video_file(file: UploadFile = File(...)):
+    """Upload video to server, and execute Face Clustering
+
+    Args:
+        file (UploadFile, optional): formData come from GCP Server. Defaults to File(...).
+
+    Returns:
+        Video (BaseModel):
+            id (UUID): 비디오를 구분할 수 있는 구분자
+            file_name (str): 파일의 이름
+            created_at (datetime): 파일이 업로드된 시간.
+    """
     new_video = Video(file_name=file.filename)
-    # video_contents = await file.read()
     os.makedirs(os.path.join(FILE_DIR, str(new_video.id)))
     id_path = os.path.join(FILE_DIR, str(new_video.id))
     server_path = os.path.join(id_path, ('original' + os.path.splitext(file.filename)[1]))
@@ -60,6 +64,18 @@ class YTVideo(BaseModel):
 
 @router.post("/upload-video-youtube", description="유튜브 URL을 이용하여 비디오를 업로드합니다.")
 def create_video_file_from_youtube(info: dict):
+    """유튜브 URL을 이용하여 비디오를 업로드하는 api
+
+    Args:
+        info (dict): 
+            url (str): youtube영상을 업로드 하기 위한 url을 담고 있음
+
+    Returns:
+        YTVideo (BaseModel): 
+            id (UUID): 비디오를 구분할 수 있는 구분자
+            file_name (str): 파일의 이름
+            created_at (datetime) : 파일이 업로드 된 시간
+    """
     yt_video = YouTube(info['url'])
     new_video = YTVideo(file_name=yt_video.title + '.mp4')
 

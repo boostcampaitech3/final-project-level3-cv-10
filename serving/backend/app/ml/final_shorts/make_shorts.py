@@ -17,24 +17,17 @@ def make_shorts(final_highlights, total_length, id, target_person):
     SHORTS_STORAGE_DIR = os.path.join(id, 'shorts')
     os.makedirs(SHORTS_DIR, exist_ok=True)
     
-
     VIDEO_DIR = os.path.join(FILE_DIR, id, "original.mp4")
-    print(VIDEO_DIR)
-
-    # CURRENT_DIR = os.getcwd()
 
     in_file = ffmpeg.input(VIDEO_DIR)
 
     target_person_shorts = []
     for idx, (start, end, interest, ratio, during) in enumerate(final_highlights):
-        print("Making Clips...")
         HIGHLIGHT_PATH = os.path.join(SHORTS_DIR, f"short_{target_person}_{idx}.mp4")
 
         # save to gcs
         HIGHLIGHT_STORAGE_DIR = os.path.join(SHORTS_STORAGE_DIR, f"short_{target_person}_{idx}.mp4")
         blob = bucket.blob(HIGHLIGHT_STORAGE_DIR)
-        
-        trim_and_fade(VIDEO_DIR, start, end, HIGHLIGHT_PATH)
 
         vid = (
             in_file.video
@@ -59,14 +52,3 @@ def make_shorts(final_highlights, total_length, id, target_person):
         target_person_shorts.append([target_person, HIGHLIGHT_STORAGE_DIR, during, interest])
 
     return target_person_shorts
-
-
-def trim_and_fade(original_path, start, end, save_path):
-    print(f"start making {save_path}")
-    os.system(f'ffmpeg -ss {start} -i {original_path} -to {end} -filter_complex \
-         "fade=in:st={start}:d=1, fade=out:st={end-1}:d=1; \
-         afade=in:st={start}:d=1, afade=out:st={end-1}:d=1" \
-        -c:v copy -c:a copy {save_path}')
-    # os.system(f'ffmpeg -i {original_path} -vf "trim=start={start}:end={end}, fade=in:st={start}:d=1, fade=out:st={end-1}:d=1" \
-    #     -af "atrim=start={start}:end={end}, afade=in:st={start}:d=1, afade=out:st={end-1}:d=1"\
-    #      {save_path}')

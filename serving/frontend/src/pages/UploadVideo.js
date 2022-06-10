@@ -16,10 +16,9 @@ const getYoutubeVideoId = (url) => {
   var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   var match = url.match(regExp);
   if (match && match[2].length == 11) {
-    console.log(match[2])
-      return match[2];
+    return match[2];
   } else {
-      return false;
+    return false;
   }
 };
 
@@ -118,7 +117,6 @@ function UploadVideo() {
     const getPeopleImg = async (res) => {
       return await axios.get(`${FACE_API}/show-people`, {params: {"id":  res}}
       ).then((response) => {
-        console.log(response);
         setPeople(response.data.people_img)
         setLoading(false);
         setNext(true);
@@ -131,14 +129,12 @@ function UploadVideo() {
 
     getFaceClustering().then((response) => {
       setRes(response.data);
-      console.log(response.data);
       getPeopleImg(response.data.id);
     }).catch((error) => {
       console.log("Failure :(");
     });
 
     getLaughterDetection().then((response) => {
-      console.log(response.data);
       setLaughterTimeline(response.data.laugh);
     }).catch((error) => {
       console.log("Failure :(");
@@ -146,7 +142,6 @@ function UploadVideo() {
   };
 
   const uploadYTModule = (url) => {
-    console.log(url);
     if (!url["url"] || !getYoutubeVideoId(url["url"])) {
       onFinishFailed();
       return ;
@@ -172,7 +167,6 @@ function UploadVideo() {
     const getPeopleImg = async (res) => {
       return await axios.get(`${FACE_API}/show-people`, {params: {"id":  res}}
       ).then((response) => {
-        console.log(response);
         setPeople(response.data.people_img)
         setLoading(false);
         setNextYT(true);
@@ -186,7 +180,6 @@ function UploadVideo() {
 
     getFaceClustering().then((response) => {
       setRes(response.data);
-      console.log(response.data);
       getPeopleImg(response.data.id);
     }).catch((error) => {
       console.log("Failure :(");
@@ -195,7 +188,6 @@ function UploadVideo() {
     });
 
     getLaughterDetection().then((response) => {
-      console.log(response.data);
       setLaughterTimeline(response.data.laugh);
     }).catch((error) => {
       console.log("Failure :(");
@@ -229,11 +221,8 @@ function UploadVideo() {
           <StyledButton onClick={uploadModule}>영상 업로드하기</StyledButton>
         ) }
         <StyledArea>
-          <div style={{fontSize: "19px", textAlign: "left", fontWeight: "bold", marginBottom: "7px"}}>
+          <div style={{fontSize: "19px", textAlign: "left", fontWeight: "bold", marginBottom: "15px"}}>
             Youtube 영상은 URL을 이용하여 업로드할 수 있습니다.
-          </div>
-          <div style={{fontSize: "14px", textAlign: "left", marginBottom: "15px", color: '#707070'}}>
-            720p를 지원하는 영상만 가능합니다.
           </div>
           <div style={{display: "flex"}}>
             <Form size={'large'} style={{flexGrow: "1", alignItems: "flex-start"}} autoComplete="off" onFinish={uploadYTModule} onFinishFailed={onFinishFailed} layout="inline">

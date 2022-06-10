@@ -10,7 +10,6 @@ import { STORAGE } from '../config';
 function SelectVideo() {
 
     const location = useLocation();
-    console.log(location.state);
 
     const [checkedList, setCheckedList] = useState([]);
     const [checkAll, setCheckAll] = useState(false);
