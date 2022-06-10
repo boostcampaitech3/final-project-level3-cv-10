@@ -22,7 +22,10 @@ def FaceClustering(video_path: str = "", save_dir:str = ""):
     extractor = FaceExtractor(
         video_path=video_path,
         data_dir=None,
-        result_dir=save_dir
+        result_dir=save_dir,
+        threshold=0.65,
+        face_cnt=280, # demo 용
+        skip=60 # demo 용
     )
 
     # Extract Faces
