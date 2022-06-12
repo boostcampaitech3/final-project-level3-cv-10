@@ -44,8 +44,8 @@ def create_video_file(file: UploadFile = File(...)):
             created_at (datetime): 파일이 업로드된 시간.
     """
     new_video = Video(file_name=file.filename)
-    os.makedirs(os.path.join(FILE_DIR, str(new_video.id)))
     id_path = os.path.join(FILE_DIR, str(new_video.id))
+    os.makedirs(id_path)
     server_path = os.path.join(id_path, ('original' + os.path.splitext(file.filename)[1]))
 
     with open(server_path, 'wb') as buffer:
@@ -54,6 +54,15 @@ def create_video_file(file: UploadFile = File(...)):
     try:
         FaceClustering(server_path, os.path.join(id_path, 'result'))
     except ValueError as e:
+        # remove folder
+        shutil.rmtree(id_path)
+        return JSONResponse(
+            status_code=422,
+            content={"message" : "등장 인물을 추출하지 못했습니다. 다른 영상으로 시도해 주세요!"}
+        )
+    except FileNotFoundError as e:
+        # remove folder
+        shutil.rmtree(id_path)
         return JSONResponse(
             status_code=422,
             content={"message" : "등장 인물을 추출하지 못했습니다. 다른 영상으로 시도해 주세요!"}
@@ -88,8 +97,8 @@ def create_video_file_from_youtube(info: dict):
 
     stream = yt_video.streams.filter(progressive=True, subtype="mp4", resolution="720p").first()
     if stream:
-        os.makedirs(os.path.join(FILE_DIR, str(new_video.id)))
         id_path = os.path.join(FILE_DIR, str(new_video.id))
+        os.makedirs(id_path)
         server_path = os.path.join(id_path, ('original.mp4'))
 
         stream.download(output_path=id_path, filename='original.mp4')
@@ -103,6 +112,15 @@ def create_video_file_from_youtube(info: dict):
         try:
             FaceClustering(server_path, os.path.join(id_path, 'result'))
         except ValueError as e:
+            # remove folder
+            shutil.rmtree(id_path)
+            return JSONResponse(
+                status_code=422,
+                content={"message" : "등장 인물을 추출하지 못했습니다. 다른 영상으로 시도해 주세요!"}
+            )
+        except FileNotFoundError as e:
+            # remove folder
+            shutil.rmtree(id_path)
             return JSONResponse(
                 status_code=422,
                 content={"message" : "등장 인물을 추출하지 못했습니다. 다른 영상으로 시도해 주세요!"}
