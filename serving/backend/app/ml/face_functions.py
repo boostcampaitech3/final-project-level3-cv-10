@@ -23,7 +23,7 @@ def FaceClustering(video_path: str = "", save_dir:str = ""):
         video_path=video_path,
         data_dir=None,
         result_dir=save_dir,
-        threshold=0.65,
+        threshold=0.65, # demo 용
         face_cnt=280, # demo 용
         skip=60 # demo 용
     )
