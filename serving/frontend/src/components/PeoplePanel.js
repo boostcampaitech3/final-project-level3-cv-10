@@ -63,7 +63,7 @@ function PeoplePanel(props) {
             setLoading(false);
             handleClick(response.data);
         }).catch((error) => {
-            console.log('Failure :(');
+            // console.log('Failure :(');
             setLoading(false);
             message.error(error.response.data.message);
         });
@@ -85,7 +85,7 @@ function PeoplePanel(props) {
                 res["people_img"] = props.people;
                 setFaceResult(res);
             }).catch((error) => {
-                console.log("Failure :(");
+                // console.log("Failure :(");
             });
         } else {
             Modal.error({
