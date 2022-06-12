@@ -51,7 +51,14 @@ def create_video_file(file: UploadFile = File(...)):
     with open(server_path, 'wb') as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    FaceClustering(server_path, os.path.join(id_path, 'result'))
+    try:
+        FaceClustering(server_path, os.path.join(id_path, 'result'))
+    except ValueError as e:
+        return JSONResponse(
+            status_code=422,
+            content={"message" : "등장 인물을 추출하지 못했습니다. 다른 영상으로 시도해 주세요!"}
+        )
+    
     return new_video
 
 
@@ -93,7 +100,13 @@ def create_video_file_from_youtube(info: dict):
         blob.upload_from_filename(server_path)
         new_video.video = os.path.join('https://storage.googleapis.com', bucket_name, blob_dir)
 
-        FaceClustering(server_path, os.path.join(id_path, 'result'))
+        try:
+            FaceClustering(server_path, os.path.join(id_path, 'result'))
+        except ValueError as e:
+            return JSONResponse(
+                status_code=422,
+                content={"message" : "등장 인물을 추출하지 못했습니다. 다른 영상으로 시도해 주세요!"}
+            )
 
         return new_video
 

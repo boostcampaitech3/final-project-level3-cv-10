@@ -37,6 +37,9 @@ function UploadVideo() {
 
   const antIcon = <LoadingOutlined style={{ fontSize: 30, color: "#1B262C" }} spin />;
 
+  let laugherror = false
+  let faceerror = false
+
   const props = {
     name: 'file',
     multiple : false,
@@ -119,8 +122,10 @@ function UploadVideo() {
       ).then((response) => {
         setPeople(response.data.people_img)
         setLoading(false);
-        setNext(true);
-        message.success(`${file.name} 파일이 성공적으로 업로드되었습니다.`);
+        if (!laugherror) {
+          setNext(true);
+          message.success(`${file.name} 파일이 성공적으로 업로드되었습니다.`);
+        }
       }).catch((error) => {
         console.log('Failure :(');
         message.error(`${file.name} 파일을 업로드하는 데에 실패했습니다.`);
@@ -132,12 +137,21 @@ function UploadVideo() {
       getPeopleImg(response.data.id);
     }).catch((error) => {
       console.log("Failure :(");
+      setLoading(false);
+      faceerror = true;
+      if (!laugherror){
+        message.error(error.response.data.message);
+      }
     });
 
     getLaughterDetection().then((response) => {
       setLaughterTimeline(response.data.laugh);
     }).catch((error) => {
       console.log("Failure :(");
+      laugherror = true;
+      if (!faceerror){
+        message.error(error.response.data.message)
+      }
     });
   };
 
@@ -169,8 +183,10 @@ function UploadVideo() {
       ).then((response) => {
         setPeople(response.data.people_img)
         setLoading(false);
-        setNextYT(true);
-        message.success(`영상이 성공적으로 업로드되었습니다.`);
+        if (!laugherror) {
+          setNextYT(true);
+          message.success(`영상이 성공적으로 업로드되었습니다.`);
+        }
       }).catch((error) => {
         console.log('Failure :(');
         setLoading(false);
@@ -184,13 +200,20 @@ function UploadVideo() {
     }).catch((error) => {
       console.log("Failure :(");
       setLoading(false);
-      message.error(error.response.data.message);
+      faceerror = true;
+      if (!laugherror){
+        message.error(error.response.data.message);
+      }
     });
 
     getLaughterDetection().then((response) => {
       setLaughterTimeline(response.data.laugh);
     }).catch((error) => {
       console.log("Failure :(");
+      laugherror = true;
+      if (!faceerror){
+        message.error(error.response.data.message)
+      }
     });
   };
 

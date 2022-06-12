@@ -59,7 +59,6 @@ def FaceRecognition(video_path: str="", target_people: list=[], result_path: str
 
 ########## Final Timeline ############
 def FinalTimeline(laugh_timeline : list, people_timeline : dict, id : str):
-    # shorts = []
 
     shorts = []
     for target_person in iter(people_timeline.keys()):
@@ -74,5 +73,3 @@ def FinalTimeline(laugh_timeline : list, people_timeline : dict, id : str):
                 shorts.append(target_person_short)
             
     return shorts
-
-    # return shorts

@@ -88,6 +88,7 @@ class LaughterDetector:
                 mean_amp_count += 1
                 end = e
         output_timeline.append((round(start-10,2),round(end+0.5,2),round(laugh_length/(end-start+10.5),2),round(mean_amp/mean_amp_count,4)))
+
         if output_timeline[0][0]<0:
             output_timeline[0]=(0,output_timeline[0][1],output_timeline[0][2],output_timeline[0][3]) # 시작값 0보다 작은경우
         if output_timeline[-1][1]>whole_length:

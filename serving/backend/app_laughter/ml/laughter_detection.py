@@ -25,7 +25,7 @@ def LaughterDetection(video_path: str = "", wav_path: str = "", ml_path: str = "
 
     # make timeline and add features for interest
     laughter_timeline = detector.make_laugh_timeline(laugh_output,length)
-
+    
     # calculate interest and make final timeline
     final_laughter_timeline = detector.calculate_interest(laughter_timeline)
 
