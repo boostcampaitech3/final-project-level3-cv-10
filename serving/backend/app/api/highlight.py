@@ -36,8 +36,6 @@ def read_highlight(timelines: dict):
 
     shorts = FinalTimeline(laugh_timeline, face_timeline, id)
 
-    print(shorts)
-
     if len(shorts)==0:
         return JSONResponse(
             status_code=422,
