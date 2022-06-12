@@ -19,13 +19,13 @@ def make_final_timeline(laughter_timeline,person_timeline,max_length=None):
             if length/shot_length > 0.35:
                 person_interest = (length/shot_length - 0.3)/0.4
                 total_interest = laugh_len*3 + laugh_db*2 + person_interest*1
-                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3), shot_length))
+                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3), shot_length+5))
                 total_length += shot_length
         else:
             if length/shot_length > 0.30:
                 person_interest = (length/shot_length - 0.3)/0.4
                 total_interest = laugh_len*3 + laugh_db*2 + person_interest*1
-                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3), shot_length))
+                final.append((round(start-5,2),end,round(total_interest,2),round(length/shot_length,3), shot_length+5))
                 total_length += shot_length  
             
     # max_length 넘어가는 경우 흥미도 높은 순서로 max_length 이내로 선택

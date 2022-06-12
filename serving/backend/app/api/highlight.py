@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter
-from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 from ml.face_functions import FinalTimeline
 
 import os
@@ -28,7 +28,6 @@ def read_highlight(timelines: dict):
                 short (list) : [{등장 인물}, {영상 디렉토리}, {영상 길이}, {영상 흥미도}] 로 구성되어 있다.
             people_img (dict) : 선택한 인물들의 이미지 디렉토리를 dictionary형태로 담아서 제공한다. ex) "people_img" : {"person_00" : "people/person_00.png", "person_03" : "people/person_03.png"}
     """
-    # print(timelines)
     laugh_timeline = timelines['laugh']
     id = timelines['id']
 
@@ -36,6 +35,12 @@ def read_highlight(timelines: dict):
     face_timeline = np.load(face_timelines_dir, allow_pickle=True).item()
 
     shorts = FinalTimeline(laugh_timeline, face_timeline, id)
+
+    if len(shorts)==0:
+        return JSONResponse(
+            status_code=422,
+            content={"message":"생성된 쇼츠가 없습니다. 다른 인물을 선택해 주세요."}
+        )
 
     # remove folder
     shutil.rmtree(os.path.join(FILE_DIR, str(id)))

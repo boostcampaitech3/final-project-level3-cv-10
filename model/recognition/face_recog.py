@@ -127,7 +127,7 @@ class FaceRecognizer:
                 last_original_frame = last_original_frame[:, :, ::-1]
                 height, width = last_original_frame.shape[:2]
                 last_original_frame = last_original_frame[int(height*0.2):, int(width*0.2):int(width*0.8)]
-                if height > 600:
+                if height > 800:
                     last_original_frame = cv2.resize(last_original_frame, None, fx=0.6, fy=0.6)    
                 frames.append(last_original_frame)
                 frames_real_time.append(frame_num-1)
@@ -135,7 +135,7 @@ class FaceRecognizer:
                 start_original_frame = start_original_frame[:, :, ::-1]
                 height, width = start_original_frame.shape[:2]
                 start_original_frame = start_original_frame[int(height*0.2):, int(width*0.2):int(width*0.8)]
-                if height > 600:
+                if height > 800:
                     start_original_frame = cv2.resize(start_original_frame, None, fx=0.6, fy=0.6)    
                 frames.append(start_original_frame)
                 frames_real_time.append(frame_num)

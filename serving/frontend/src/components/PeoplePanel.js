@@ -1,4 +1,4 @@
-import { Spin, Checkbox, Avatar, Image, Modal } from 'antd';
+import { Spin, Checkbox, Avatar, Image, Modal, message } from 'antd';
 import axios from 'axios';
 import { useState, useContext, useEffect } from 'react';
 import styled from "styled-components";
@@ -62,6 +62,10 @@ function PeoplePanel(props) {
         ).then((response) => {
             setLoading(false);
             handleClick(response.data);
+        }).catch((error) => {
+            // console.log('Failure :(');
+            setLoading(false);
+            message.error(error.response.data.message);
         });
     };
 
@@ -81,7 +85,7 @@ function PeoplePanel(props) {
                 res["people_img"] = props.people;
                 setFaceResult(res);
             }).catch((error) => {
-                console.log("Failure :(");
+                // console.log("Failure :(");
             });
         } else {
             Modal.error({

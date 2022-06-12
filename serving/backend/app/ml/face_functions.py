@@ -22,7 +22,10 @@ def FaceClustering(video_path: str = "", save_dir:str = ""):
     extractor = FaceExtractor(
         video_path=video_path,
         data_dir=None,
-        result_dir=save_dir
+        result_dir=save_dir,
+        threshold=0.65, # demo 용
+        face_cnt=280, # demo 용
+        skip=60 # demo 용
     )
 
     # Extract Faces
@@ -56,7 +59,6 @@ def FaceRecognition(video_path: str="", target_people: list=[], result_path: str
 
 ########## Final Timeline ############
 def FinalTimeline(laugh_timeline : list, people_timeline : dict, id : str):
-    # shorts = []
 
     shorts = []
     for target_person in iter(people_timeline.keys()):
@@ -71,5 +73,3 @@ def FinalTimeline(laugh_timeline : list, people_timeline : dict, id : str):
                 shorts.append(target_person_short)
             
     return shorts
-
-    # return shorts

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 
 import os
 from pydantic import BaseModel, Field
@@ -26,9 +27,7 @@ class Video(BaseModel):
 
 class VideoTimeline(BaseModel):
     id: UUID
-    # file_name: str
     laugh: Optional[List[Tuple]]
-    # created_at : datetime
 
 
 @router.post("/laughter-detection", description="laughter timeline을 추출하는 전과정을 수행합니다.")
@@ -56,7 +55,21 @@ def laughter_detection(file: UploadFile = File(...)):
     # execute laughter detection    
     wav_path = os.path.join(FILE_DIR, str(new_video.id_laughter), 'for_laughter_detection')
 
-    laughter_timeline = LaughterDetection(video_path, wav_path, ML_DIR)
+    try:
+        laughter_timeline = LaughterDetection(video_path, wav_path, ML_DIR)
+    except ZeroDivisionError as e:
+        shutil.rmtree(os.path.join(FILE_DIR, str(new_video_timeline.id)))
+        return JSONResponse(
+            status_code=422,
+            content={"message": "쇼츠를 생성할 수 없는 영상입니다. 다른 영상으로 시도해 주세요!"}
+        )
+    except FileNotFoundError as e:
+        shutil.rmtree(os.path.join(FILE_DIR, str(new_video_timeline.id)))
+        return JSONResponse(
+            status_code=422,
+            content={"message": "소리가 없는 영상입니다. 다른 영상으로 시도해 주세요!"}
+        )
+
     new_video_timeline.laugh = laughter_timeline
 
     # remove folder (laughter detection 서버에서는 일회성이므로)
@@ -94,7 +107,21 @@ def laughter_detection_from_youtube(info: dict):
         # execute laughter detection    
         wav_path = os.path.join(id_path, 'for_laughter_detection')
 
-        laughter_timeline = LaughterDetection(video_path, wav_path, ML_DIR)
+        try:
+            laughter_timeline = LaughterDetection(video_path, wav_path, ML_DIR)
+        except ZeroDivisionError as e:
+            shutil.rmtree(os.path.join(FILE_DIR, str(new_video_timeline.id)))
+            return JSONResponse(
+                status_code=422,
+                content={"message": "쇼츠를 생성할 수 없는 영상입니다. 다른 영상으로 시도해 주세요!"}
+            )
+        except FileNotFoundError as e:
+            shutil.rmtree(os.path.join(FILE_DIR, str(new_video_timeline.id)))
+            return JSONResponse(
+                status_code=422,
+                content={"message": "소리가 없는 영상입니다. 다른 영상으로 시도해 주세요!"}
+            )
+
         new_video_timeline.laugh = laughter_timeline
 
         # remove folder (laughter detection 서버에서는 일회성이므로)
@@ -102,4 +129,4 @@ def laughter_detection_from_youtube(info: dict):
         return new_video_timeline
 
     else:
-        return {"message": "720p를 지원하는 영상이 아닙니다."}
+        return {"message": "720p를 지원하는 영상이 아닙니다."} # 어차피 app/api/video.py에서 예외 처리
