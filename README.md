@@ -24,7 +24,7 @@ TBA
 
 ## Introduction
 ### Background
-- 예능 프로그램은 게스트를 중심으로 편집되어 여러 플랫폼에 하이라이트 편집본으로 올라오지만, 전문 인력이 직접 수행해야하는 편집 과정은 **큰 시간과 비용을 요구**합니다. 
+- 예능 프로그램은 게스트를 중심으로 편집되어 여러 플랫폼에 하이라이트 편집본으로 업로드되지만 전문 인력이 직접 수행해야하는 편집 과정은 **큰 시간과 비용을 요구**합니다. 
 - 최근 영상 소비의 트렌드는 가볍게 즐길 수 있는 **1분 내외 길이인 '숏폼' 영상**으로, 동일 영상 대비 숏폼으로 편집될 경우 더 많은 조회수와 더 다양한 플랫폼에서 노출의 기회를 얻습니다. 
 
 ### Contribution
@@ -50,7 +50,7 @@ TBA
 
 #### Laughter Detection
 - 예능 영상의 음성 파일에서 **laughter timeline**(웃음이 등장하는 타임라인)을 추출합니다.
-- 웃음 구간이 짧은 타임라인은 병합한 후, 맥락을 포함하기 위해 각 타임라인에 **[-15초, +0.5초]** 를 추가하여 숏폼 영상 후보군을 생성합니다.
+- 웃음 구간이 짧은 타임라인은 병합한 후, 맥락을 포함하기 위해 각 타임라인에 **[-15초, +0.5초]** 연산을 적용하여 숏폼 영상 후보군을 생성합니다.
 - laughter detection을 수행하는 서버는 따로 두어 다른 동작과 **병렬적으로 동시에 수행**됩니다.
 
 <br>
@@ -86,12 +86,12 @@ TBA
 
 <br>
 
-## How to Run
+## More Information
 ### Modeling
-TBA
+[>> LINK](https://github.com/boostcampaitech3/final-project-level3-cv-10/tree/main/model)
 
 ### Serving
-TBA
+[>> LINK](https://github.com/boostcampaitech3/final-project-level3-cv-10/tree/main/serving)
 
 <br>
 
