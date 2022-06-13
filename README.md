@@ -103,6 +103,8 @@ TBA
 
 ### Open Source
 - Face Recognition [[CODE]](https://github.com/ageitgey/face_recognition)
+- Unknown Face Classifier [[CODE]](https://github.com/ukayzm/opencv/tree/master/unknown_face_classifier)
+- Image Cluster [[CODE]](https://github.com/elcorto/imagecluster)
 
 <br>
 
