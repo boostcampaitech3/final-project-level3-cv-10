@@ -96,9 +96,9 @@ TBA
 <br>
 
 ## Reference
-### Papers
-- Gillick, Jon, et al. "Robust Laughter Detection in Noisy Environments." Proc. Interspeech 2021 (2021): 2481-2485. [[PAPER]](https://www.isca-speech.org/archive/pdfs/interspeech_2021/gillick21_interspeech.pdf) [[CODE]](https://github.com/jrgillick/laughter-detection)
-- Brown, Andrew, Vicky Kalogeiton, and Andrew Zisserman. "Face, body, voice: Video person-clustering with multiple modalities." Proceedings of the IEEE/CVF International Conference on Computer Vision. 2021. [[PAPER]](https://arxiv.org/pdf/2105.09939.pdf)
+### Paper
+- Gillick, Jon, et al. "Robust Laughter Detection in Noisy Environments." Proc. Interspeech 2021 (2021): 2481-2485. [[PDF]](https://www.isca-speech.org/archive/pdfs/interspeech_2021/gillick21_interspeech.pdf) [[CODE]](https://github.com/jrgillick/laughter-detection)
+- Brown, Andrew, Vicky Kalogeiton, and Andrew Zisserman. "Face, body, voice: Video person-clustering with multiple modalities." Proceedings of the IEEE/CVF International Conference on Computer Vision. 2021. [[PDF]](https://arxiv.org/pdf/2105.09939.pdf)
 
 
 ### Open Source
