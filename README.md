@@ -93,13 +93,25 @@ TBA
 ### Serving
 [>> LINK](https://github.com/boostcampaitech3/final-project-level3-cv-10/tree/main/serving)
 
+### Document & Demo
+
+| Type           | Link     |
+|----------------|----------|
+| WrapUp Report  | [>> PDF](https://github.com/boostcampaitech3/final-project-level3-cv-10/blob/main/%E1%84%8E%E1%85%AC%E1%84%8C%E1%85%A9%E1%86%BC%E1%84%91%E1%85%B3%E1%84%85%E1%85%A9%E1%84%8C%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B3_CV_%E1%84%90%E1%85%B5%E1%86%B7%20%E1%84%85%E1%85%B5%E1%84%91%E1%85%A9%E1%84%90%E1%85%B3(10%E1%84%8C%E1%85%A9).pdf)   |
+| Presentation   | [>> PDF](https://drive.google.com/file/d/1iSQKfMrLj3v85jroaw_M6OYMAwXFohmc/view?usp=sharing)   |
+| Demo           | [>> VIDEO](https://drive.google.com/file/d/1zMjFBrJvRXcn8x8K6XqoiAigqCGYR396/view?usp=sharing) |
+
 <br>
 
 ## Reference
 ### Paper
-- Gillick, Jon, et al. "Robust Laughter Detection in Noisy Environments." Proc. Interspeech 2021 (2021): 2481-2485. [[PDF]](https://www.isca-speech.org/archive/pdfs/interspeech_2021/gillick21_interspeech.pdf) [[CODE]](https://github.com/jrgillick/laughter-detection)
-- Brown, Andrew, Vicky Kalogeiton, and Andrew Zisserman. "Face, body, voice: Video person-clustering with multiple modalities." Proceedings of the IEEE/CVF International Conference on Computer Vision. 2021. [[PDF]](https://arxiv.org/pdf/2105.09939.pdf)
-
+- Gillick, Jon, et al. "Robust Laughter Detection in Noisy Environments." Proc. Interspeech 2021 (2021): 2481-2485. [[PAPER]](https://www.isca-speech.org/archive/pdfs/interspeech_2021/gillick21_interspeech.pdf) [[CODE]](https://github.com/jrgillick/laughter-detection)
+- Brown, Andrew, Vicky Kalogeiton, and Andrew Zisserman. "Face, body, voice: Video person-clustering with multiple modalities." Proceedings of the IEEE/CVF International Conference on Computer Vision. 2021. [[PAPER]](https://arxiv.org/pdf/2105.09939.pdf)
+- Robertson, David J., Robin SS Kramer, and A. Mike Burton. "Face averages enhance user recognition for smartphone security." PloS one 10.3 (2015): e0119460. [[PAPER]](https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0119460&type=printable)
+- Davies, David L., and Donald W. Bouldin. "A cluster separation measure." IEEE transactions on pattern analysis and machine intelligence 2 (1979): 224-227. [[PAPER]](https://www.researchgate.net/publication/224377470_A_Cluster_Separation_Measure)
+- Komatsu, Kazuaki.,  Kazutaka Shimada, and Tsutomu Endo. "A person identification method using facial, clothing and time features." (2017) [[PAPER]](http://www.pluto.ai.kyutech.ac.jp/~shimada/paper/IWACIIIKomatsu.pdf)
+- El Khoury, Elie, Christine Sénac, and Philippe Joly. "Face-and-clothing based people clustering in video content." Proceedings of the international conference on Multimedia information retrieval. 2010. [[PAPER]](https://dl.acm.org/doi/10.1145/1743384.1743435)
+- Yang, Saelyne, et al. "CatchLive: Real-time Summarization of Live Streams with Stream Content and Interaction Data." CHI Conference on Human Factors in Computing Systems. 2022. [[PAPER]](https://kixlab.github.io/website-files/2022/chi2022-CatchLive-paper.pdf)
 
 ### Open Source
 - Face Recognition [[CODE]](https://github.com/ageitgey/face_recognition)
