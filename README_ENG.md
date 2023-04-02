@@ -6,11 +6,6 @@
 
 <br>
 
-## Service URL
-
-TBA
-
-<br>
 
 ## Members
 
