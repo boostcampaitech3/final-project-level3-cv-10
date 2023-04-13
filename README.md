@@ -6,11 +6,6 @@
 
 <br>
 
-## Service URL
-TBA
-
-<br>
-
 ## Members
 > 안녕하세요, CV-10 #눈#사람 팀입니다.
 
@@ -97,9 +92,9 @@ TBA
 
 | Type           | Link     |
 |----------------|----------|
-| WrapUp Report  | [>> PDF](https://github.com/boostcampaitech3/final-project-level3-cv-10/blob/main/%E1%84%8E%E1%85%AC%E1%84%8C%E1%85%A9%E1%86%BC%E1%84%91%E1%85%B3%E1%84%85%E1%85%A9%E1%84%8C%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B3_CV_%E1%84%90%E1%85%B5%E1%86%B7%20%E1%84%85%E1%85%B5%E1%84%91%E1%85%A9%E1%84%90%E1%85%B3(10%E1%84%8C%E1%85%A9).pdf)   |
-| Presentation   | [>> PDF](https://drive.google.com/file/d/1iSQKfMrLj3v85jroaw_M6OYMAwXFohmc/view?usp=sharing)   |
-| Demo           | [>> VIDEO](https://drive.google.com/file/d/1zMjFBrJvRXcn8x8K6XqoiAigqCGYR396/view?usp=sharing) |
+| WrapUp Report  | [>> PDF](https://drive.google.com/file/d/12giW1iRmt3gLyXMdStUArrcOVJ5jky7C/view?usp=sharing)   |
+| Presentation   | [>> PDF](https://drive.google.com/file/d/1BjzHchwNadcwvPrtW-T_VZZBUPI7kEzn/view?usp=sharing)   |
+| Demo           | [>> VIDEO](https://drive.google.com/file/d/1b4qgf6XILCIdPBLiDv0a4KCwonx8fmgf/view?usp=sharing) |
 
 <br>
 
