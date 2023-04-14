@@ -76,6 +76,11 @@
 
 <br>
 
+## Calculating Final Timeline
+<img width="1153" alt="타임라인_계산_과정" src="https://user-images.githubusercontent.com/43572543/231921053-08e2ee57-da4f-42c8-b817-8fc5c63d0240.png">
+
+<br>
+
 ## System Architecture
 <img width="1466" alt="시스템_구성도" src="https://user-images.githubusercontent.com/43572543/173294290-2a8af4fd-6672-4de1-af3c-e839dd21e247.png">
 
